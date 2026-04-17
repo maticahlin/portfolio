@@ -101,7 +101,8 @@ export default function Home() {
       <div className="w-full h-px bg-white shrink-0" />
 
       {/* Desktop */}
-      <div ref={desktopRef} className="flex-1 relative overflow-hidden bg-desktop-dark">
+      <div ref={desktopRef} className="flex-1 relative overflow-hidden" style={{ backgroundImage: 'url(/desktop.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      {/* OLD: className="flex-1 relative overflow-hidden bg-desktop-dark" */}
         <div className="absolute top-6.25 left-6.25 flex flex-col gap-8">
           <DesktopIcon 
             label="Projects" 
