@@ -9,7 +9,7 @@ export default function TaskBar({
   onOpenAbout?: () => void;
 }) {
   return (
-    <div className="w-full h-11 py-1 bg-desktop-dark flex items-stretch justify-between px-2.5 shrink-0">
+    <div className="w-full h-11 py-1 bg-transparent flex items-stretch justify-between px-2.5 shrink-0">
       {/* Open window buttons */}
       <div className="flex items-stretch gap-1">
         {openWindows?.map((window, i) => (
@@ -64,7 +64,7 @@ export default function TaskBar({
         </div>
 
         {/* Clock */}
-        <div className="h-full flex items-center border border-grey-dark bg-desktop-dark px-2 text-sm font-sans text-white leading-none">
+        <div className="h-full flex items-center border border-grey-dark px-2 text-sm font-sans text-white leading-none">
           <Clock />
         </div>
       </div>

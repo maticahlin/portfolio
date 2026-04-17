@@ -12,15 +12,15 @@
   --font-sans: Arial, sans-serif;
 }
 
-@keyframes scroll {
-  0% {
+@keyframes scroll-seamless {
+  from {
     transform: translateX(0);
   }
-  100% {
+  to {
     transform: translateX(-50%);
   }
 }
 
-.animate-scroll {
-  animation: scroll 20s linear infinite;
+.animate-scroll-seamless {
+  animation: scroll-seamless 40s linear infinite;
 }
