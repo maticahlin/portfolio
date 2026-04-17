@@ -151,15 +151,17 @@ export default function Window({
                 </div>
 
                 <div className="flex gap-1 shrink-0">
-                    {/* Minimize */}
+                {/* Minimize - only show if onMinimize exists */}
+                {onMinimize && (
                     <button onClick={onMinimize} className="w-6 h-5 bg-grey-mid border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:bg-grey-light transition-colors">
-                        <span className="text-xs leading-none">_</span>
+                    <span className="text-xs leading-none">_</span>
                     </button>
-                    
-                    {/* Close */}
-                    <button onClick={onClose} className="w-6 h-5 bg-grey-mid border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:bg-grey-light transition-colors">
-                        <span className="text-xs leading-none">✕</span>
-                    </button>
+                )}
+                
+                {/* Close */}
+                <button onClick={onClose} className="w-6 h-5 bg-grey-mid border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:bg-grey-light transition-colors">
+                    <span className="text-xs leading-none">✕</span>
+                </button>
                 </div>
             </div>
 

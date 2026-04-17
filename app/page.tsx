@@ -49,11 +49,13 @@ export default function Home() {
   }, []);
 
   const handlePreviewClick = (projectId: string) => {
-    // Open Projects window with this project selected
-    setSelectedProjectId(projectId);
-    setShowProjects(true);
-    setActiveWindow("projects");
-  };
+  // Close the preview window when opening full project
+  setClosedPreviews(prev => new Set([...prev, projectId]));
+  // Open Projects window with this project selected
+  setSelectedProjectId(projectId);
+  setShowProjects(true);
+  setActiveWindow("projects");
+};
 
   const openWindows = [];
   if (showProjects) {
@@ -293,8 +295,9 @@ function PreviewWindow({
   return (
     <Window
       title={project.title}
-      icon="/projects.png"
+      icon="/icons/world-star.png"
       onClose={onClose}
+      onMinimize={undefined}
       isActive={isActive}
       onClick={onActivate}
       statusText={project.shortDescription}
