@@ -6,12 +6,24 @@ export default function TaskBar({
 }: { 
   onOpenAbout?: () => void;
 }) {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
-    <div className="w-full h-11 py-1 flex items-stretch justify-end px-2.5 shrink-0">
+    <div className="w-full h-9 py-1 flex items-stretch justify-end px-2.5 shrink-0">
       {/* Right side - System tray + Clock */}
       <div className="flex items-stretch gap-2">
         {/* System Tray Icons */}
-        <div className="flex items-center gap-3.5 px-2 border-l border-grey-mid">
+        <div className="flex items-center gap-3.5 px-2">
           {/* LinkedIn */}
           <button
             onClick={() => window.open('https://www.linkedin.com/in/matic-ahlin/', '_blank')}
@@ -40,10 +52,15 @@ export default function TaskBar({
           </button>
         </div>
 
-        {/* Clock */}
-        <div className="h-full flex items-center border border-grey-mid px-2 text-sm font-sans text-white leading-none">
-          <Clock />
-        </div>
+        {/* Divider + Clock - Desktop only */}
+        {!isMobile && (
+          <>
+            <div className="border-l border-grey-dark" />
+            <div className="h-full flex items-center px-2 text-sm font-sans text-white leading-none border border-grey-dark">
+              <Clock />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

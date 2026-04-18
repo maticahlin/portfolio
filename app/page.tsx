@@ -29,6 +29,17 @@ export default function Home() {
   const [isQRMinimized, setIsQRMinimized] = useState(false);
   const [theme, setTheme] = useState<'grey' | 'dark'>('grey');
   const [projectViewTitle, setProjectViewTitle] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Keyboard shortcut listener
   useEffect(() => {
@@ -151,8 +162,8 @@ export default function Home() {
           />
         </div>
 
-        {/* Preview Windows - From Sanity */}
-        {previewWindows.map((project, index) => {
+        {/* Preview Windows - Desktop only */}
+        {!isMobile && previewWindows.map((project, index) => {
           if (closedPreviews.has(project._id)) return null;
           
           // Get valid images
