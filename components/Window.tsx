@@ -15,6 +15,7 @@ type WindowProps = {
     initialHeight?: number;
     initialX?: number;
     initialY?: number;
+    theme?: 'grey' | 'dark';
 };
 
 export default function Window({ 
@@ -29,8 +30,15 @@ export default function Window({
     statusText, 
     desktopRef,
     initialWidth = 600,
-    initialHeight = 400
+    initialHeight = 400,
+    theme = 'grey'   
 }: WindowProps) {
+    const bgColor = theme === 'dark' ? '#1a1a1a' : '#e6e6e6';
+    const titleBg = theme === 'dark' ? '#000000' : '#4047c9';
+    const buttonBg = theme === 'dark' ? '#333333' : '#cccccc';
+    const borderLight = theme === 'dark' ? '#3a3a3a' : 'white';
+    const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
+
     const getRandomPosition = () => {
         if (!desktopRef.current) return { x: 100, y: 100 };
         
@@ -110,27 +118,29 @@ export default function Window({
     return (
         <div 
             ref={windowRef} 
-            className="absolute bg-grey-light shadow-lg flex flex-col" 
+            className="absolute shadow-lg flex flex-col" 
             style={{ 
                 left: `${position.x}px`, 
                 top: `${position.y}px`,
                 width: `${size.width}px`,
                 height: `${size.height}px`,
                 zIndex: isActive ? 10 : 1,
-                borderTop: '2px solid white',
-                borderLeft: '2px solid white',
+                backgroundColor: bgColor,
+                borderTop: `2px solid ${borderLight}`,
+                borderLeft: `2px solid ${borderLight}`,
                 borderRight: '2px solid black',
                 borderBottom: '2px solid black',
                 paddingTop: '2px',
                 paddingLeft: '2px',
                 paddingRight: '3px',
-                paddingBottom: '2px'
+                paddingBottom: '3px'
             }}
             onClick={onClick}
         >
             {/* TITLE BAR */}
             <div 
-                className="h-7 bg-accent px-1 flex items-center justify-between cursor-move select-none" 
+                className="h-7 px-1 flex items-center justify-between cursor-move select-none" 
+                style={{ backgroundColor: titleBg }}
                 onMouseDown={(e) => {
                     e.preventDefault();
                     onClick?.();
@@ -152,14 +162,22 @@ export default function Window({
 
                 <div className="flex gap-1 shrink-0">
                 {/* Minimize - only show if onMinimize exists */}
-                {onMinimize && (
-                    <button onClick={onMinimize} className="w-6 h-5 bg-grey-mid border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:bg-grey-light transition-colors">
-                    <span className="text-xs leading-none">_</span>
+                {/*{onMinimize && (
+                    <button 
+                        onClick={onMinimize} 
+                        className="w-6 h-5 border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:brightness-110 transition-all"
+                        style={{ backgroundColor: buttonBg }}
+                    >
+                        <span className="text-xs leading-none">_</span>
                     </button>
-                )}
+                )}*/}
                 
                 {/* Close */}
-                <button onClick={onClose} className="w-6 h-5 bg-grey-mid border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:bg-grey-light transition-colors">
+                <button 
+                    onClick={onClose} 
+                    className="w-6 h-5 border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:brightness-110 transition-all"
+                    style={{ backgroundColor: buttonBg }}
+                >
                     <span className="text-xs leading-none">✕</span>
                 </button>
                 </div>
@@ -167,8 +185,8 @@ export default function Window({
 
             {/* DIVIDER + spacing */}
             <div className="h-0.5" />
-            <div className="h-px bg-white" />
-            <div className="h-px bg-grey-dark" />
+            <div className="h-px" style={{ backgroundColor: borderLight }} />
+            <div className="h-px" style={{ backgroundColor: borderDark }} />
             <div className="h-0.5" />
 
             {/* Content area */}
@@ -178,7 +196,16 @@ export default function Window({
 
             <div className="h-1" />
             {/* Status bar */}
-            <div className="h-7 bg-grey-light border border-t-grey-dark border-l-grey-dark border-b-white border-r-white flex items-center px-1 gap-2 shrink-0">
+            <div 
+                className="h-7 border flex items-center px-1 gap-2 shrink-0"
+                style={{ 
+                    backgroundColor: bgColor,
+                    borderTopColor: borderDark,
+                    borderLeftColor: borderDark,
+                    borderBottomColor: borderLight,
+                    borderRightColor: borderLight
+                }}
+            >
                 <span className="text-sm truncate overflow-hidden whitespace-nowrap flex-1">{statusText || "Ready"}</span>
                 
                 <div

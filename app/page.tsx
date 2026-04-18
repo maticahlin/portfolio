@@ -27,6 +27,25 @@ export default function Home() {
   const [mailStatusText, setMailStatusText] = useState("Have a project in mind? I'd be happy to learn about it.");
   const [showQR, setShowQR] = useState(false);
   const [isQRMinimized, setIsQRMinimized] = useState(false);
+  const [theme, setTheme] = useState<'grey' | 'dark'>('grey');
+  const [projectViewTitle, setProjectViewTitle] = useState<string | null>(null);
+
+  // Keyboard shortcut listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === '1') {
+        setTheme('grey');
+        console.log('Switched to GREY theme');
+      }
+      if (e.ctrlKey && e.key === '2') {
+        setTheme('dark');
+        console.log('Switched to DARK theme');
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const desktopRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +79,7 @@ export default function Home() {
   const openWindows = [];
   if (showProjects) {
     openWindows.push({
-      title: "File Browser (Projects)",
+      title: "Project Browser",
       icon: "/projects.png",
       isMinimized: isProjectsMinimized,
       isActive: activeWindow === "projects",
@@ -159,6 +178,7 @@ export default function Home() {
               onClose={() => setClosedPreviews(prev => new Set([...prev, project._id]))}
               onClick={() => handlePreviewClick(project._id)}
               desktopRef={desktopRef}
+              theme={theme}
             />
           );
         })}
@@ -166,24 +186,27 @@ export default function Home() {
         {/* Projects Window */}
         {showProjects && (
           <Window 
-            title="File Browser (Projects)" 
+            title={projectViewTitle ? `Project Browser - ${projectViewTitle}` : "Project Browser"}
             icon="/projects.png" 
             onClose={() => {
               setShowProjects(false);
               setSelectedProjectId(null);
+              setProjectViewTitle(null);
             }}
-            onMinimize={() => setIsProjectsMinimized(true)}
-            isMinimized={isProjectsMinimized}
+            // onMinimize - commented out
+            // isMinimized={isProjectsMinimized}
             isActive={activeWindow === "projects"}
             onClick={() => setActiveWindow("projects")}
             desktopRef={desktopRef}
             initialWidth={1350}
-            initialHeight={600}
+            initialHeight={675}  // INCREASED FROM 600
             statusText={projectsStatusText}
+            theme={theme}
           >
             <FileBrowser 
               onStatusChange={setProjectsStatusText}
               initialProjectId={selectedProjectId}
+              onProjectView={setProjectViewTitle}
             />
           </Window>
         )}
@@ -200,6 +223,7 @@ export default function Home() {
             onClick={() => setActiveWindow("mail")}
             statusText={mailStatusText}
             desktopRef={desktopRef}
+            theme={theme}
           >
             <div className="bg-white h-full w-full">
               <MailForm onStatusChange={setMailStatusText} />
@@ -221,6 +245,7 @@ export default function Home() {
             desktopRef={desktopRef}
             initialWidth={500}
             initialHeight={550}
+            theme={theme}
           >
             <QRGenerator />
           </Window>
@@ -231,7 +256,6 @@ export default function Home() {
       </div>
 
       <TaskBar 
-        openWindows={openWindows}
         onOpenAbout={() => setShowAbout(true)}
       />
     </div>
@@ -248,7 +272,8 @@ function PreviewWindow({
   onActivate,
   onClose,
   onClick,
-  desktopRef
+  desktopRef,
+  theme
 }: {
   project: Project;
   imageUrl: string;
@@ -259,6 +284,7 @@ function PreviewWindow({
   onClose: () => void;
   onClick: () => void;
   desktopRef: React.RefObject<HTMLDivElement | null>;
+  theme: 'grey' | 'dark';
 }) {
   const [dimensions, setDimensions] = useState({ width: 350, height: 250 });
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -306,6 +332,7 @@ function PreviewWindow({
       initialHeight={dimensions.height}
       initialX={200 + offsetX}
       initialY={150 + offsetY}
+      theme={theme}
     >
       <div 
         className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity overflow-hidden"

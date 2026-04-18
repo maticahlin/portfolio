@@ -5,10 +5,12 @@ import { getProjects, type Project } from "@/lib/sanity";
 
 export default function FileBrowser({ 
   onStatusChange,
-  initialProjectId 
+  initialProjectId,
+  onProjectView
 }: { 
   onStatusChange?: (text: string) => void;
   initialProjectId?: string | null;
+  onProjectView?: (projectTitle: string | null) => void;
 }) {
   const [selectedCategory, setSelectedCategory] = useState<"all" | "client" | "creative" | "personal">("all");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -44,6 +46,11 @@ export default function FileBrowser({
       }
     }
   }, [initialProjectId, projects]);
+
+  // Update parent when viewing project changes
+  useEffect(() => {
+    onProjectView?.(viewingProject?.title || null);
+  }, [viewingProject, onProjectView]);
 
   // Filter by subcategory - "all" shows everything
   const filteredProjects = selectedCategory === "all" 
@@ -90,60 +97,57 @@ export default function FileBrowser({
   }
 
   if (viewingProject) {
-    return (
-      <div ref={containerRef} className="h-full overflow-auto bg-white">
-        {/* Mobile/Tablet: Vertical Stack */}
-        {!isDesktopLayout && (
-          <div className="p-6">
-            <button
-              onClick={() => setViewingProject(null)}
-              className="text-sm underline mb-4 hover:no-underline"
-            >
-              ← Back to Projects
-            </button>
-            
-            <h1 className="text-3xl font-serif mb-2">{viewingProject.title}</h1>
-            
-            <div className="text-sm space-y-1 mb-6">
-              {viewingProject.client && <p><strong>Client:</strong> {viewingProject.client}</p>}
-              {viewingProject.role && <p><strong>Role:</strong> {viewingProject.role}</p>}
-              {viewingProject.collaborators && <p><strong>Collaborators:</strong> {viewingProject.collaborators}</p>}
-              {viewingProject.format && <p><strong>Format:</strong> {viewingProject.format}</p>}
-              {viewingProject.year && <p><strong>Year:</strong> {viewingProject.year}</p>}
-            </div>
+  return (
+    <div ref={containerRef} className="h-full flex flex-col bg-white">
+      {/* Toolbar */}
+      <div className="bg-grey-light flex gap-1 pb-1 shrink-0">
+        <button
+          onClick={() => setViewingProject(null)}
+          className="px-6 py-1 text-sm cursor-pointer border border-t-white border-l-white border-r-grey-dark border-b-grey-dark bg-transparent"
+        >
+          ← Back
+        </button>
+      </div>
 
-            <p className="text-sm leading-relaxed mb-6">{viewingProject.longDescription}</p>
-
-            <div className="space-y-4">
-              {viewingProject.images?.filter(img => img && img.url).map((img, i) => (
-                <div key={i} className="border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-grey-light p-1">
-                  <img
-                    src={img.url}
-                    alt=""
-                    className="w-full cursor-pointer hover:opacity-90"
-                    onClick={() => setLightboxImage(img.url)}
-                  />
-                </div>
-              ))}
-            </div>
+      {/* Mobile/Tablet: Vertical Stack */}
+      {!isDesktopLayout && (
+        <div className="p-6 overflow-auto flex-1">
+          <h1 className="text-4xl font-serif mb-4">{viewingProject.title}</h1>
+          
+          <div className="text-sm space-y-1 mb-6">
+            {viewingProject.client && <p><strong>Client:</strong> {viewingProject.client}</p>}
+            {viewingProject.role && <p><strong>Role:</strong> {viewingProject.role}</p>}
+            {viewingProject.collaborators && <p><strong>Collaborators:</strong> {viewingProject.collaborators}</p>}
+            {viewingProject.format && <p><strong>Format:</strong> {viewingProject.format}</p>}
+            {viewingProject.year && <p><strong>Year:</strong> {viewingProject.year}</p>}
           </div>
-        )}
 
-        {/* Desktop: Fixed Left Sidebar + Scrolling Right Images */}
-        {isDesktopLayout && (
-          <div className="flex h-full border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-white">
-            {/* Left Column - Fixed Text */}
-            <div className="w-1/2 p-8 flex flex-col">
-              <button
-                onClick={() => setViewingProject(null)}
-                className="self-start mb-6 px-3 py-1 text-sm bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] hover:bg-grey-mid active:border-t-black active:border-l-black active:border-r-white active:border-b-white cursor-pointer"
-              >
-                ← Back
-              </button>
+          <p className="text-sm leading-relaxed mb-6">{viewingProject.longDescription}</p>
+
+          <div className="space-y-4">
+            {viewingProject.images?.filter(img => img && img.url).map((img, i) => (
+              <div key={i} className="border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-grey-light p-1">
+                <img
+                  src={img.url}
+                  alt=""
+                  className="w-full cursor-pointer hover:opacity-90"
+                  onClick={() => setLightboxImage(img.url)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Desktop: Fixed Left Sidebar + Scrolling Right Images */}
+      {isDesktopLayout && (
+        <div className="flex flex-1 overflow-hidden border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-white">
+          {/* Left Column - Scrollable Text */}
+          <div className="w-1/2 overflow-y-auto flex flex-col">
+            <div className="p-8 flex flex-col flex-1">
+              <h1 className="text-6xl font-serif mb-8 leading-tight">{viewingProject.title}</h1>
               
-              <h1 className="text-5xl font-serif mb-8 leading-tight">{viewingProject.title}</h1>
-              
-              <div className="text-sm font-mono space-y-1 mb-auto">
+              <div className="text-sm font-mono space-y-1 mb-8">
                 {viewingProject.projectType && (
                   <div className="flex">
                     <span className="w-40">[PROJECT TYPE]</span>
@@ -188,18 +192,21 @@ export default function FileBrowser({
                 )}
               </div>
 
+              {/* Push description to bottom */}
               <p className="text-base leading-relaxed mt-auto">{viewingProject.longDescription}</p>
             </div>
+          </div>
 
-            {/* Right Column - Scrolling Images (no borders on images) */}
-            <div className="w-1/2 overflow-y-auto p-8 space-y-6">
+          {/* Right Column - Scrolling Images */}
+          <div className="w-1/2 overflow-y-auto border-l border-grey-dark">
+            <div className="p-8 space-y-6">
               {viewingProject.images && Array.isArray(viewingProject.images) && viewingProject.images.length > 0 ? (
                 viewingProject.images
                   .filter(img => img && img.url)
                   .map((img, i) => (
                     <div 
                       key={i} 
-                      className="p-1 cursor-pointer hover:opacity-90"
+                      className="cursor-pointer hover:opacity-90"
                       onClick={() => setLightboxImage(img.url)}
                     >
                       <img
@@ -216,7 +223,8 @@ export default function FileBrowser({
               )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* Lightbox */}
         {lightboxImage && (
@@ -303,7 +311,7 @@ export default function FileBrowser({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Category Tabs - Added Personal */}
+      {/* Category Tabs */}
       <div className="bg-grey-light flex gap-1">
         <button
           onClick={() => setSelectedCategory("all")}
