@@ -126,7 +126,20 @@ export default function Home() {
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col overflow-hidden" style={{ backgroundImage: 'url(/desktop.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+    <div 
+  className="w-screen h-dvh flex flex-col overflow-hidden" 
+  style={{ 
+    backgroundImage: 'url(/desktop.png)', 
+    backgroundSize: 'cover', 
+    backgroundPosition: 'center',
+    overscrollBehavior: 'none',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0
+  }}
+>
       <TopBar />
 
       {/* White separator line */}

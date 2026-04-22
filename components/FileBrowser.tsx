@@ -20,7 +20,19 @@ export default function FileBrowser({
   const [containerWidth, setContainerWidth] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Fetch projects from Sanity
   useEffect(() => {
@@ -226,92 +238,112 @@ export default function FileBrowser({
         </div>
       )}
 
-        {/* Lightbox */}
-        {lightboxImage && (
-          <>
-            {/* Backdrop */}
-            <div 
-              className="fixed inset-0 bg-black/90 z-50" 
-              onClick={() => setLightboxImage(null)} 
-            />
-            
-            {/* Content Container */}
-            <div 
-              className="fixed inset-0 z-50 flex items-center justify-center p-12"
-              onClick={() => setLightboxImage(null)}
-            >
-              <div className="relative w-full h-full flex items-center justify-center">
-                {/* Main Image */}
-                <img 
-                  src={lightboxImage} 
-                  alt="" 
-                  className="max-w-[90vw] max-h-[85vh] object-contain"
-                  onClick={(e) => e.stopPropagation()}
-                />
+      {/* Lightbox */}
+      {lightboxImage && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/90 z-50" 
+            onClick={() => setLightboxImage(null)} 
+          />
+          
+          {/* Content Container */}
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={() => setLightboxImage(null)}
+          >
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Main Image */}
+              <img 
+                src={lightboxImage} 
+                alt="" 
+                className="max-w-[90vw] max-h-[85vh] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
 
-                {/* Navigation Arrows */}
-                {viewingProject && viewingProject.images && viewingProject.images.length > 1 && (() => {
-                  const validImages = viewingProject.images.filter(img => img && img.url);
-                  const currentIndex = validImages.findIndex(img => img.url === lightboxImage);
-                  
-                  return (
-                    <>
-                      {/* Left Arrow */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const prevIndex = currentIndex === 0 ? validImages.length - 1 : currentIndex - 1;
-                          setLightboxImage(validImages[prevIndex].url);
-                        }}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] hover:bg-white active:border-t-black active:border-l-black active:border-r-white active:border-b-white flex items-center justify-center text-2xl cursor-pointer"
-                      >
-                        ‹
-                      </button>
+              {/* Navigation Arrows */}
+              {viewingProject && viewingProject.images && viewingProject.images.length > 1 && (() => {
+                const validImages = viewingProject.images.filter(img => img && img.url);
+                const currentIndex = validImages.findIndex(img => img.url === lightboxImage);
+                
+                return (
+                  <>
+                    {/* Left Arrow */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const prevIndex = currentIndex === 0 ? validImages.length - 1 : currentIndex - 1;
+                        setLightboxImage(validImages[prevIndex].url);
+                      }}
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer ${
+                        isMobile 
+                          ? 'w-12 h-12 text-white/80 hover:text-white' 
+                          : 'w-12 h-12 bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] hover:bg-white active:border-t-black active:border-l-black active:border-r-white active:border-b-white text-black'
+                      }`}
+                      style={{ fontWeight: 100, fontSize: isMobile ? '48px' : '32px' }}
+                    >
+                      ‹
+                    </button>
 
-                      {/* Right Arrow */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const nextIndex = currentIndex === validImages.length - 1 ? 0 : currentIndex + 1;
-                          setLightboxImage(validImages[nextIndex].url);
-                        }}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] hover:bg-white active:border-t-black active:border-l-black active:border-r-white active:border-b-white flex items-center justify-center text-2xl cursor-pointer"
-                      >
-                        ›
-                      </button>
+                    {/* Right Arrow */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const nextIndex = currentIndex === validImages.length - 1 ? 0 : currentIndex + 1;
+                        setLightboxImage(validImages[nextIndex].url);
+                      }}
+                      className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer ${
+                        isMobile 
+                          ? 'w-12 h-12 text-white/80 hover:text-white' 
+                          : 'w-12 h-12 bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] hover:bg-white active:border-t-black active:border-l-black active:border-r-white active:border-b-white text-black'
+                      }`}
+                      style={{ fontWeight: 100, fontSize: isMobile ? '48px' : '32px' }}
+                    >
+                      ›
+                    </button>
 
-                      {/* Image Counter */}
-                      <div 
-                        className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-grey-light border border-white px-3 py-1 text-sm font-mono"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {currentIndex + 1} / {validImages.length}
-                      </div>
-                    </>
-                  );
-                })()}
+                    {/* Image Counter */}
+                    <div 
+                      className={`absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 text-sm font-mono ${
+                        isMobile
+                          ? 'text-white/80'
+                          : 'bg-grey-light border border-white text-black'
+                      }`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {currentIndex + 1} / {validImages.length}
+                    </div>
+                  </>
+                );
+              })()}
 
-                {/* Close Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLightboxImage(null);
-                  }}
-                  className="absolute top-4 right-4 w-8 h-8 bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] hover:bg-white active:border-t-black active:border-l-black active:border-r-white active:border-b-white flex items-center justify-center text-lg font-bold cursor-pointer"
-                >
-                  ×
-                </button>
-              </div>
+              {/* Close Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxImage(null);
+                }}
+                className={`absolute top-4 right-4 flex items-center justify-center cursor-pointer ${
+                  isMobile
+                    ? 'w-10 h-10 text-white/80 hover:text-white'
+                    : 'w-8 h-8 bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] hover:bg-white active:border-t-black active:border-l-black active:border-r-white active:border-b-white text-black'
+                }`}
+                style={{ fontWeight: 100, fontSize: isMobile ? '36px' : '20px' }}
+              >
+                ×
+              </button>
             </div>
-          </>
-        )}
-      </div>
-    );
+          </div>
+        </>
+      )}
+    </div>
+  );
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Category Tabs */}
+  <div className="flex flex-col h-full">
+    {/* Category Tabs - Desktop only */}
+    {!isMobile && (
       <div className="bg-grey-light flex gap-1">
         <button
           onClick={() => setSelectedCategory("all")}
@@ -354,10 +386,11 @@ export default function FileBrowser({
           Personal
         </button>
       </div>
+    )}
 
-      <div className="h-1" />
+    <div className="h-1" />
 
-      <div className="flex flex-1 overflow-hidden gap-1">
+    <div className="flex flex-1 overflow-hidden gap-1">
         {/* Table */}
         <div 
           className="flex-1 overflow-auto bg-white border border-t-black border-l-black border-b-grey-dark border-r-grey-dark"
@@ -370,31 +403,50 @@ export default function FileBrowser({
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-grey-light border-b border-grey-dark sticky top-0">
-                <th className="p-0 border-r border-grey-dark font-normal w-8">
-                  <div className="py-1 px-1 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark">
-                    &nbsp;
-                  </div>
-                </th>
-                <th className="p-0 border-r border-grey-dark font-normal">
-                  <div className="py-1 px-2 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark text-left">
-                    Client
-                  </div>
-                </th>
+                {/* Star/Pin column - Desktop only */}
+                {!isMobile && (
+                  <th className="p-0 border-r border-grey-dark font-normal w-8">
+                    <div className="py-1 px-1 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark">
+                      &nbsp;
+                    </div>
+                  </th>
+                )}
+                
+                {/* Client column - Desktop only */}
+                {!isMobile && (
+                  <th className="p-0 border-r border-grey-dark font-normal">
+                    <div className="py-1 px-2 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark text-left">
+                      Client
+                    </div>
+                  </th>
+                )}
+                
+                {/* Project column - Always visible */}
                 <th className="p-0 border-r border-grey-dark font-normal">
                   <div className="py-1 px-2 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark text-left">
                     Project
                   </div>
                 </th>
-                <th className="p-0 border-r border-grey-dark font-normal">
-                  <div className="py-1 px-2 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark text-left">
-                    Collaborators
-                  </div>
-                </th>
-                <th className="p-0 border-r border-grey-dark font-normal">
-                  <div className="py-1 px-2 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark text-left">
-                    Format
-                  </div>
-                </th>
+                
+                {/* Collaborators column - Desktop only */}
+                {!isMobile && (
+                  <th className="p-0 border-r border-grey-dark font-normal">
+                    <div className="py-1 px-2 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark text-left">
+                      Collaborators
+                    </div>
+                  </th>
+                )}
+                
+                {/* Format column - Desktop only */}
+                {!isMobile && (
+                  <th className="p-0 border-r border-grey-dark font-normal">
+                    <div className="py-1 px-2 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark text-left">
+                      Format
+                    </div>
+                  </th>
+                )}
+                
+                {/* Year column - Always visible */}
                 <th className="p-0 font-normal">
                   <div className="py-1 px-2 bg-grey-light border border-t-white border-l-white border-b-grey-dark border-r-grey-dark text-left">
                     Year
@@ -418,15 +470,28 @@ export default function FileBrowser({
                       : ''
                   }`}
                 >
-                  <td className="p-1 text-center">
-                    {project.isPinned && (
-                      <img src="/icons/star.png" alt="Featured" className="w-4 h-4 mx-auto" />
-                    )}
-                  </td>
-                  <td className="p-2">{project.client || '-'}</td>
+                  {/* Star/Pin cell - Desktop only */}
+                  {!isMobile && (
+                    <td className="p-1 text-center">
+                      {project.isPinned && (
+                        <img src="/icons/star.png" alt="Featured" className="w-4 h-4 mx-auto" />
+                      )}
+                    </td>
+                  )}
+                  
+                  {/* Client cell - Desktop only */}
+                  {!isMobile && <td className="p-2">{project.client || '-'}</td>}
+                  
+                  {/* Project cell - Always visible */}
                   <td className="p-2">{project.title}</td>
-                  <td className="p-2">{project.collaborators || '-'}</td>
-                  <td className="p-2">{project.format}</td>
+                  
+                  {/* Collaborators cell - Desktop only */}
+                  {!isMobile && <td className="p-2">{project.collaborators || '-'}</td>}
+                  
+                  {/* Format cell - Desktop only */}
+                  {!isMobile && <td className="p-2">{project.format}</td>}
+                  
+                  {/* Year cell - Always visible */}
                   <td className="p-2">{project.year}</td>
                 </tr>
               ))}
@@ -434,16 +499,18 @@ export default function FileBrowser({
           </table>
         </div>
 
-        {/* Preview Pane */}
-        <div className="w-80 bg-white overflow-hidden border border-t-black border-l-black border-b-grey-dark border-r-grey-dark">
-          {!projectToShow && (
-            <div className="flex items-center justify-center h-full text-sm text-grey-dark p-4 text-center">
-              Select a project to preview
-            </div>
-          )}
+        {/* Preview Pane - Desktop only */}
+        {!isMobile && (
+          <div className="w-80 bg-white overflow-hidden border border-t-black border-l-black border-b-grey-dark border-r-grey-dark">
+            {!projectToShow && (
+              <div className="flex items-center justify-center h-full text-sm text-grey-dark p-4 text-center">
+                Select a project to preview
+              </div>
+            )}
 
-          {projectToShow && <ImageCarousel images={projectToShow.images} />}
-        </div>
+            {projectToShow && <ImageCarousel images={projectToShow.images} />}
+          </div>
+        )}
       </div>
     </div>
   );
