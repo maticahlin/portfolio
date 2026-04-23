@@ -116,6 +116,7 @@ export default function HomeContent() {
         backgroundSize: 'cover', 
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        backgroundColor: '#141414'
       }}
     >
       <TopBar />
