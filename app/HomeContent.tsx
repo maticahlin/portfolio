@@ -115,7 +115,9 @@ export default function HomeContent() {
         backgroundImage: 'url(/desktop.png)', 
         backgroundSize: 'cover', 
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        minHeight: '120vh',
+        height: '120vh'
       }}
     >
       <TopBar />
