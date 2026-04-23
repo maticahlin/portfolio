@@ -9,6 +9,7 @@ import AboutDialog from "@/components/AboutDialog";
 import FileBrowser from "@/components/FileBrowser";
 import QRGenerator from "@/components/QRGenerator";
 import { getProjects, type Project } from "@/lib/sanity";
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import { useState, useRef, useEffect } from 'react';
 
@@ -57,6 +58,31 @@ export default function Home() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Read project from URL on mount
+  useEffect(() => {
+    const projectSlug = searchParams.get('project');
+    if (projectSlug && !selectedProjectId) {
+      setSelectedProjectId(projectSlug);
+      setShowProjects(true);
+      setActiveWindow("projects");
+    }
+  }, [searchParams]);
+
+  // Update URL when viewing project
+  useEffect(() => {
+    if (projectViewTitle && showProjects) {
+      // Create slug from project title
+      const slug = projectViewTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      router.push(`/?project=${slug}`, { scroll: false });
+    } else if (!showProjects) {
+      // Clear URL when closing projects
+      router.push('/', { scroll: false });
+    }
+  }, [projectViewTitle, showProjects, router]);
 
   const desktopRef = useRef<HTMLDivElement>(null);
 
@@ -127,19 +153,14 @@ export default function Home() {
 
   return (
     <div 
-  className="w-screen h-dvh flex flex-col overflow-hidden" 
-  style={{ 
-    backgroundImage: 'url(/desktop.png)', 
-    backgroundSize: 'cover', 
-    backgroundPosition: 'center',
-    overscrollBehavior: 'none',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
-  }}
->
+      className="fixed inset-0 flex flex-col" 
+      style={{ 
+        backgroundImage: 'url(/desktop.png)', 
+        backgroundSize: 'cover', 
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       <TopBar />
 
       {/* White separator line */}
@@ -226,6 +247,7 @@ export default function Home() {
             initialHeight={675}  // INCREASED FROM 600
             statusText={projectsStatusText}
             theme={theme}
+            showMaximize={true}
           >
             <FileBrowser 
               onStatusChange={setProjectsStatusText}

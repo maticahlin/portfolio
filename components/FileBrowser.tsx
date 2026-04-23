@@ -115,7 +115,7 @@ export default function FileBrowser({
       <div className="bg-grey-light flex gap-1 pb-1 shrink-0">
         <button
           onClick={() => setViewingProject(null)}
-          className="px-6 py-1 text-sm cursor-pointer border border-t-white border-l-white border-r-grey-dark border-b-grey-dark bg-transparent"
+          className="px-6 py-1 text-sm cursor-pointer border border-t-white border-l-white border-r-black border-b-black bg-transparent"
         >
           ← Back
         </button>
@@ -349,7 +349,7 @@ export default function FileBrowser({
           onClick={() => setSelectedCategory("all")}
           className={`px-4 py-1 text-sm cursor-pointer ${
             selectedCategory === "all"
-              ? "border border-t-white border-l-white border-r-grey-dark border-b-grey-dark bg-transparent"
+              ? "border border-t-white border-l-white border-r-black border-b-black bg-transparent"
               : ""
           }`}
         >
@@ -359,7 +359,7 @@ export default function FileBrowser({
           onClick={() => setSelectedCategory("client")}
           className={`px-4 py-1 text-sm cursor-pointer ${
             selectedCategory === "client"
-              ? "border border-t-white border-l-white border-r-grey-dark border-b-grey-dark bg-transparent"
+              ? "border border-t-white border-l-white border-r-black border-b-black bg-transparent"
               : ""
           }`}
         >
@@ -369,7 +369,7 @@ export default function FileBrowser({
           onClick={() => setSelectedCategory("creative")}
           className={`px-4 py-1 text-sm cursor-pointer ${
             selectedCategory === "creative"
-              ? "border border-t-white border-l-white border-r-grey-dark border-b-grey-dark bg-transparent"
+              ? "border border-t-white border-l-white border-r-black border-b-black bg-transparent"
               : ""
           }`}
         >
@@ -379,7 +379,7 @@ export default function FileBrowser({
           onClick={() => setSelectedCategory("personal")}
           className={`px-4 py-1 text-sm cursor-pointer ${
             selectedCategory === "personal"
-              ? "border border-t-white border-l-white border-r-grey-dark border-b-grey-dark bg-transparent"
+              ? "border border-t-white border-l-white border-r-black border-b-black bg-transparent"
               : ""
           }`}
         >
