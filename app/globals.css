@@ -32,11 +32,6 @@ html, body {
   height: 100%;
   overflow: hidden;
   background-color: #141414;
-  background-image: url(/desktop.png);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed
 }
 
 body {
