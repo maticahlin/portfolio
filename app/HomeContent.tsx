@@ -9,13 +9,11 @@ import AboutDialog from "@/components/AboutDialog";
 import FileBrowser from "@/components/FileBrowser";
 import QRGenerator from "@/components/QRGenerator";
 import { getProjects, type Project } from "@/lib/sanity";
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Suspense } from 'react';
-import HomeContent from './HomeContent';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function Home() {
+export default function HomeContent() {
   const [showProjects, setShowProjects] = useState(false);
   const [isProjectsMinimized, setIsProjectsMinimized] = useState(false);
   const [showMail, setShowMail] = useState(false);
@@ -34,6 +32,9 @@ export default function Home() {
   const [projectViewTitle, setProjectViewTitle] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -43,6 +44,26 @@ export default function Home() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Read project from URL on mount
+  useEffect(() => {
+    const projectSlug = searchParams.get('project');
+    if (projectSlug && !selectedProjectId) {
+      setSelectedProjectId(projectSlug);
+      setShowProjects(true);
+      setActiveWindow("projects");
+    }
+  }, [searchParams, selectedProjectId]);
+
+  // Update URL when viewing project
+  useEffect(() => {
+    if (projectViewTitle && showProjects) {
+      const slug = projectViewTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      router.push(`/?project=${slug}`, { scroll: false });
+    } else if (!showProjects) {
+      router.push('/', { scroll: false });
+    }
+  }, [projectViewTitle, showProjects, router]);
 
   // Keyboard shortcut listener
   useEffect(() => {
@@ -61,31 +82,6 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  // Read project from URL on mount
-  useEffect(() => {
-    const projectSlug = searchParams.get('project');
-    if (projectSlug && !selectedProjectId) {
-      setSelectedProjectId(projectSlug);
-      setShowProjects(true);
-      setActiveWindow("projects");
-    }
-  }, [searchParams]);
-
-  // Update URL when viewing project
-  useEffect(() => {
-    if (projectViewTitle && showProjects) {
-      // Create slug from project title
-      const slug = projectViewTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      router.push(`/?project=${slug}`, { scroll: false });
-    } else if (!showProjects) {
-      // Clear URL when closing projects
-      router.push('/', { scroll: false });
-    }
-  }, [projectViewTitle, showProjects, router]);
-
   const desktopRef = useRef<HTMLDivElement>(null);
 
   // Fetch 3 random projects for preview on mount
@@ -94,7 +90,6 @@ export default function Home() {
       try {
         const allProjects = await getProjects();
         if (allProjects.length > 0) {
-          // Shuffle and take 3
           const shuffled = [...allProjects].sort(() => Math.random() - 0.5);
           const selected = shuffled.slice(0, Math.min(3, allProjects.length));
           setPreviewWindows(selected);
@@ -107,57 +102,11 @@ export default function Home() {
   }, []);
 
   const handlePreviewClick = (projectId: string) => {
-  // Close the preview window when opening full project
-  setClosedPreviews(prev => new Set([...prev, projectId]));
-  // Open Projects window with this project selected
-  setSelectedProjectId(projectId);
-  setShowProjects(true);
-  setActiveWindow("projects");
-
-  return (
-    <Suspense fallback={<div className="w-screen h-screen bg-black" />}>
-      <HomeContent />
-    </Suspense>
-  );
-};
-
-  const openWindows = [];
-  if (showProjects) {
-    openWindows.push({
-      title: "Project Browser",
-      icon: "/projects.png",
-      isMinimized: isProjectsMinimized,
-      isActive: activeWindow === "projects",
-      onRestore: () => {
-        setIsProjectsMinimized(false);
-        setActiveWindow("projects");
-      }
-    });
-  }
-  if (showMail) {
-    openWindows.push({
-      title: "Mail",
-      icon: "/mail.png",
-      isMinimized: isMailMinimized,
-      isActive: activeWindow === "mail",
-      onRestore: () => {
-        setIsMailMinimized(false);
-        setActiveWindow("mail");
-      }
-    });
-  }
-  if (showQR) {
-    openWindows.push({
-      title: "QR Code Generator",
-      icon: "/qr.png",
-      isMinimized: isQRMinimized,
-      isActive: activeWindow === "qr",
-      onRestore: () => {
-        setIsQRMinimized(false);
-        setActiveWindow("qr");
-      }
-    });
-  }
+    setClosedPreviews(prev => new Set([...prev, projectId]));
+    setSelectedProjectId(projectId);
+    setShowProjects(true);
+    setActiveWindow("projects");
+  };
 
   return (
     <div 
@@ -171,12 +120,9 @@ export default function Home() {
     >
       <TopBar />
 
-      {/* White separator line */}
       <div className="w-full h-px bg-white shrink-0" />
 
-      {/* Desktop */}
       <div ref={desktopRef} className="flex-1 relative overflow-hidden">
-      {/* OLD: className="flex-1 relative overflow-hidden bg-desktop-dark" */}
         <div className="absolute top-6.25 left-6.25 flex flex-col gap-8">
           <DesktopIcon 
             label="Projects" 
@@ -204,18 +150,13 @@ export default function Home() {
           />
         </div>
 
-        {/* Preview Windows - Desktop only */}
         {!isMobile && previewWindows.map((project, index) => {
           if (closedPreviews.has(project._id)) return null;
           
-          // Get valid images
           const validImages = project.images?.filter(img => img && img.url) || [];
           if (validImages.length === 0) return null;
           
-          // Pick RANDOM image from project
           const randomImage = validImages[Math.floor(Math.random() * validImages.length)];
-          
-          // Stagger positions
           const offsetX = index * 60;
           const offsetY = index * 80;
           
@@ -236,7 +177,6 @@ export default function Home() {
           );
         })}
 
-        {/* Projects Window */}
         {showProjects && (
           <Window 
             title={projectViewTitle ? `Project Browser - ${projectViewTitle}` : "Project Browser"}
@@ -246,13 +186,11 @@ export default function Home() {
               setSelectedProjectId(null);
               setProjectViewTitle(null);
             }}
-            // onMinimize - commented out
-            // isMinimized={isProjectsMinimized}
             isActive={activeWindow === "projects"}
             onClick={() => setActiveWindow("projects")}
             desktopRef={desktopRef}
             initialWidth={1350}
-            initialHeight={675}  // INCREASED FROM 600
+            initialHeight={675}
             statusText={projectsStatusText}
             theme={theme}
             showMaximize={true}
@@ -265,7 +203,6 @@ export default function Home() {
           </Window>
         )}
 
-        {/* Mail Window */}
         {showMail && (
           <Window 
             title="Mail" 
@@ -285,7 +222,6 @@ export default function Home() {
           </Window>
         )}
 
-        {/* QR Generator Window */}
         {showQR && (
           <Window 
             title="QR Code Generator" 
@@ -305,7 +241,6 @@ export default function Home() {
           </Window>
         )}
 
-        {/* About Dialog */}
         {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
       </div>
 
@@ -316,7 +251,6 @@ export default function Home() {
   );
 }
 
-// Preview Window Component that adapts to image size
 function PreviewWindow({
   project,
   imageUrl,
@@ -342,10 +276,9 @@ function PreviewWindow({
 }) {
   const [dimensions, setDimensions] = useState({ width: 350, height: 250 });
   const [imageLoaded, setImageLoaded] = useState(false);
-  const imageUrlRef = useRef(imageUrl); // Store the initial image URL
+  const imageUrlRef = useRef(imageUrl);
 
   useEffect(() => {
-    // Use the ref value, not the prop (which might change)
     const img = new Image();
     img.onload = () => {
       let width = img.naturalWidth;
@@ -368,7 +301,7 @@ function PreviewWindow({
       setImageLoaded(true);
     };
     img.src = imageUrlRef.current;
-  }, []); // Empty deps - only run once
+  }, []);
 
   if (!imageLoaded) return null;
 
