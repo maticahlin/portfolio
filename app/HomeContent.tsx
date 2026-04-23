@@ -116,8 +116,7 @@ export default function HomeContent() {
         backgroundSize: 'cover', 
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        minHeight: '120vh',
-        height: '120vh'
+        backgroundColor: '#141414'
       }}
     >
       <TopBar />
