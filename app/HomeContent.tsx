@@ -9,9 +9,9 @@ import AboutDialog from "@/components/AboutDialog";
 import FileBrowser from "@/components/FileBrowser";
 import QRGenerator from "@/components/QRGenerator";
 import { getProjects, type Project } from "@/lib/sanity";
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import { useState, useRef, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function HomeContent() {
   const [showProjects, setShowProjects] = useState(false);
