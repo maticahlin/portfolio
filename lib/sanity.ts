@@ -32,6 +32,7 @@ export type Project = {
   longDescription: string;
   images: any[];
   isPinned?: boolean;
+  p5Code?: string;
 }
 
 export async function getProjects(): Promise<Project[]> {
@@ -53,7 +54,8 @@ export async function getProjects(): Promise<Project[]> {
       shortDescription,
       longDescription,
       "images": images[].asset->,
-      isPinned
+      isPinned,
+      p5Code
     }
   `)
 }

@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { getProjects, type Project } from "@/lib/sanity";
+import P5Sketch from './P5Sketch';
 
 export default function FileBrowser({ 
   onStatusChange,
@@ -21,6 +22,7 @@ export default function FileBrowser({
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [sketchKey, setSketchKey] = useState(0); // For restarting sketches
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Mobile detection
@@ -63,6 +65,11 @@ export default function FileBrowser({
   useEffect(() => {
     onProjectView?.(viewingProject?.title || null);
   }, [viewingProject, onProjectView]);
+
+  // Reset sketch key when viewing different project
+  useEffect(() => {
+    setSketchKey(0);
+  }, [viewingProject]);
 
   // Filter by subcategory - "all" shows everything
   const filteredProjects = selectedCategory === "all" 
@@ -127,31 +134,55 @@ export default function FileBrowser({
           <h1 className="text-4xl font-serif mb-4">{viewingProject.title}</h1>
           
           <div className="text-sm space-y-1 mb-6">
+            {viewingProject.projectType && <p><strong>Project Type:</strong> {viewingProject.projectType}</p>}
             {viewingProject.client && <p><strong>Client:</strong> {viewingProject.client}</p>}
             {viewingProject.role && <p><strong>Role:</strong> {viewingProject.role}</p>}
-            {viewingProject.collaborators && <p><strong>Collaborators:</strong> {viewingProject.collaborators}</p>}
-            {viewingProject.format && <p><strong>Format:</strong> {viewingProject.format}</p>}
+            {viewingProject.design && <p><strong>Design:</strong> {viewingProject.design}</p>}
+            {viewingProject.development && <p><strong>Development:</strong> {viewingProject.development}</p>}
             {viewingProject.year && <p><strong>Year:</strong> {viewingProject.year}</p>}
+            {viewingProject.link && (
+              <p>
+                <strong>Link:</strong>{" "}
+                <a href={viewingProject.link} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                  {viewingProject.link.replace(/^https?:\/\/(www\.)?/, '')}
+                </a>
+              </p>
+            )}
           </div>
 
           <p className="text-sm leading-relaxed mb-6">{viewingProject.longDescription}</p>
 
-          <div className="space-y-4">
-            {viewingProject.images?.filter(img => img && img.url).map((img, i) => (
-              <div key={i} className="border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-grey-light p-1">
-                <img
-                  src={img.url}
-                  alt=""
-                  className="w-full cursor-pointer hover:opacity-90"
-                  onClick={() => setLightboxImage(img.url)}
-                />
+          {/* Show p5 sketch or images */}
+          {viewingProject.p5Code ? (
+            <div className="space-y-4">
+              <div className="h-100 border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-grey-light p-1">
+                <P5Sketch key={sketchKey} code={viewingProject.p5Code} />
               </div>
-            ))}
-          </div>
+              <button
+                onClick={() => setSketchKey(prev => prev + 1)}
+                className="w-full px-6 py-2 text-sm bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:bg-grey-mid transition-colors"
+              >
+                🔄 Restart Sketch
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {viewingProject.images?.filter(img => img && img.url).map((img, i) => (
+                <div key={i} className="border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-grey-light p-1">
+                  <img
+                    src={img.url}
+                    alt=""
+                    className="w-full cursor-pointer hover:opacity-90"
+                    onClick={() => setLightboxImage(img.url)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Desktop: Fixed Left Sidebar + Scrolling Right Images */}
+      {/* Desktop: Fixed Left Sidebar + Scrolling Right Images/Sketch */}
       {isDesktopLayout && (
         <div className="flex flex-1 overflow-hidden border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-white">
           {/* Left Column - Scrollable Text */}
@@ -159,44 +190,44 @@ export default function FileBrowser({
             <div className="p-8 flex flex-col flex-1">
               <h1 className="text-6xl font-serif mb-8 leading-tight">{viewingProject.title}</h1>
               
-              <div className="text-sm font-mono space-y-1 mb-8">
+              <div className="text-sm font-mono space-y-3 mb-8">
                 {viewingProject.projectType && (
-                  <div className="flex">
-                    <span className="w-40">[PROJECT TYPE]</span>
-                    <span>{viewingProject.projectType}</span>
+                  <div>
+                    <div className="text-grey-dark mb-1">[PROJECT TYPE]</div>
+                    <div>{viewingProject.projectType}</div>
                   </div>
                 )}
                 {viewingProject.client && (
-                  <div className="flex">
-                    <span className="w-40">[CLIENT]</span>
-                    <span>{viewingProject.client}</span>
+                  <div>
+                    <div className="text-grey-dark mb-1">[CLIENT]</div>
+                    <div>{viewingProject.client}</div>
                   </div>
                 )}
                 {viewingProject.role && (
-                  <div className="flex">
-                    <span className="w-40">[ROLE]</span>
-                    <span>{viewingProject.role}</span>
+                  <div>
+                    <div className="text-grey-dark mb-1">[ROLE]</div>
+                    <div>{viewingProject.role}</div>
                   </div>
                 )}
                 {viewingProject.design && (
-                  <div className="flex">
-                    <span className="w-40">[DESIGN]</span>
-                    <span>{viewingProject.design}</span>
+                  <div>
+                    <div className="text-grey-dark mb-1">[DESIGN]</div>
+                    <div>{viewingProject.design}</div>
                   </div>
                 )}
                 {viewingProject.development && (
-                  <div className="flex">
-                    <span className="w-40">[DEVELOPMENT]</span>
-                    <span>{viewingProject.development}</span>
+                  <div>
+                    <div className="text-grey-dark mb-1">[DEVELOPMENT]</div>
+                    <div>{viewingProject.development}</div>
                   </div>
                 )}
-                <div className="flex">
-                  <span className="w-40">[YEAR]</span>
-                  <span>{viewingProject.year}</span>
+                <div>
+                  <div className="text-grey-dark mb-1">[YEAR]</div>
+                  <div>{viewingProject.year}</div>
                 </div>
                 {viewingProject.link && (
-                  <div className="flex">
-                    <span className="w-40">[LINK]</span>
+                  <div>
+                    <div className="text-grey-dark mb-1">[LINK]</div>
                     <a href={viewingProject.link} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
                       {viewingProject.link.replace(/^https?:\/\/(www\.)?/, '')}
                     </a>
@@ -209,29 +240,45 @@ export default function FileBrowser({
             </div>
           </div>
 
-          {/* Right Column - Scrolling Images */}
+          {/* Right Column - Scrolling Images OR Live p5 Sketch */}
           <div className="w-1/2 overflow-y-auto border-l border-grey-dark">
             <div className="p-8 space-y-6">
-              {viewingProject.images && Array.isArray(viewingProject.images) && viewingProject.images.length > 0 ? (
-                viewingProject.images
-                  .filter(img => img && img.url)
-                  .map((img, i) => (
-                    <div 
-                      key={i} 
-                      className="cursor-pointer hover:opacity-90"
-                      onClick={() => setLightboxImage(img.url)}
-                    >
-                      <img
-                        src={img.url}
-                        alt=""
-                        className="w-full"
-                      />
-                    </div>
-                  ))
-              ) : (
-                <div className="flex items-center justify-center h-full text-sm text-grey-dark">
-                  No images available
+              {/* Show p5 sketch if code exists */}
+              {viewingProject.p5Code ? (
+                <div className="space-y-4">
+                  <div className="h-125 border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-grey-light p-1">
+                    <P5Sketch key={sketchKey} code={viewingProject.p5Code} />
+                  </div>
+                  <button
+                    onClick={() => setSketchKey(prev => prev + 1)}
+                    className="w-full px-6 py-2 text-sm bg-grey-light border border-t-white border-l-white border-r-black border-b-black shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:bg-grey-mid transition-colors active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
+                  >
+                    🔄 Restart Sketch
+                  </button>
                 </div>
+              ) : (
+                /* Original image gallery */
+                viewingProject.images && Array.isArray(viewingProject.images) && viewingProject.images.length > 0 ? (
+                  viewingProject.images
+                    .filter(img => img && img.url)
+                    .map((img, i) => (
+                      <div 
+                        key={i} 
+                        className="cursor-pointer hover:opacity-90"
+                        onClick={() => setLightboxImage(img.url)}
+                      >
+                        <img
+                          src={img.url}
+                          alt=""
+                          className="w-full"
+                        />
+                      </div>
+                    ))
+                ) : (
+                  <div className="flex items-center justify-center h-full text-sm text-grey-dark">
+                    No images available
+                  </div>
+                )
               )}
             </div>
           </div>

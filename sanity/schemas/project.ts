@@ -113,6 +113,13 @@ export default defineType({
       validation: Rule => Rule.required().min(1)
     }),
     defineField({
+      name: 'p5Code',
+      title: 'p5.js Code',
+      type: 'text',
+      description: 'p5.js sketch code (for Creative Code projects only). Paste your full sketch.js code here.',
+      rows: 20
+    }),
+    defineField({
       name: 'isPinned',
       title: 'Featured Project',
       type: 'boolean',
