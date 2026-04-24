@@ -31,6 +31,8 @@ export default function HomeContent() {
   const [theme, setTheme] = useState<'grey' | 'dark'>('grey');
   const [projectViewTitle, setProjectViewTitle] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);  // ADD THIS
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);  // ADD THIS
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -45,25 +47,54 @@ export default function HomeContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Read project from URL on mount
+  // Read project from URL on mount/navigation
   useEffect(() => {
     const projectSlug = searchParams.get('project');
-    if (projectSlug && !selectedProjectId) {
-      setSelectedProjectId(projectSlug);
-      setShowProjects(true);
-      setActiveWindow("projects");
+    
+    if (projectSlug && projects.length > 0) {
+      // Find project by matching slug
+      const matchingProject = projects.find(p => {
+        const pSlug = p.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        return pSlug === projectSlug;
+      });
+      
+      if (matchingProject) {
+        setSelectedProjectId(matchingProject._id);
+        setViewingProject(matchingProject);
+        setShowProjects(true);
+        setActiveWindow("projects");
+      }
+    } else if (!projectSlug) {
+      // Clear project view when URL is cleared
+      setViewingProject(null);
+      setProjectViewTitle(null);
     }
-  }, [searchParams, selectedProjectId]);
+  }, [searchParams, projects]);
 
-  // Update URL when viewing project
+  // Update URL when viewing project changes
   useEffect(() => {
     if (projectViewTitle && showProjects) {
       const slug = projectViewTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      router.push(`/?project=${slug}`, { scroll: false });
+      const currentSlug = searchParams.get('project');
+      
+      // Only update if different to avoid loops
+      if (currentSlug !== slug) {
+        router.push(`/?project=${slug}`, { scroll: false });
+      }
+    } else if (showProjects && !projectViewTitle) {
+      // In project browser but no specific project - clear URL
+      const currentSlug = searchParams.get('project');
+      if (currentSlug) {
+        router.push('/', { scroll: false });
+      }
     } else if (!showProjects) {
-      router.push('/', { scroll: false });
+      // Projects window closed - clear URL
+      const currentSlug = searchParams.get('project');
+      if (currentSlug) {
+        router.push('/', { scroll: false });
+      }
     }
-  }, [projectViewTitle, showProjects, router]);
+  }, [projectViewTitle, showProjects, router, searchParams]);
 
   // Keyboard shortcut listener
   useEffect(() => {
@@ -84,11 +115,13 @@ export default function HomeContent() {
 
   const desktopRef = useRef<HTMLDivElement>(null);
 
-  // Fetch 3 random projects for preview on mount
+  // Fetch projects for preview AND store all projects
   useEffect(() => {
     async function loadPreviews() {
       try {
         const allProjects = await getProjects();
+        setProjects(allProjects);  // ADD THIS LINE
+        
         if (allProjects.length > 0) {
           const shuffled = [...allProjects].sort(() => Math.random() - 0.5);
           const selected = shuffled.slice(0, Math.min(3, allProjects.length));
@@ -186,6 +219,7 @@ export default function HomeContent() {
               setShowProjects(false);
               setSelectedProjectId(null);
               setProjectViewTitle(null);
+              setViewingProject(null);
             }}
             isActive={activeWindow === "projects"}
             onClick={() => setActiveWindow("projects")}
@@ -200,6 +234,11 @@ export default function HomeContent() {
               onStatusChange={setProjectsStatusText}
               initialProjectId={selectedProjectId}
               onProjectView={setProjectViewTitle}
+              onCloseProject={() => {
+                setViewingProject(null);
+                setProjectViewTitle(null);
+                setSelectedProjectId(null);
+              }}
             />
           </Window>
         )}

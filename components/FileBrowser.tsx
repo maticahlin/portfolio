@@ -7,11 +7,13 @@ import P5Sketch from './P5Sketch';
 export default function FileBrowser({ 
   onStatusChange,
   initialProjectId,
-  onProjectView
+  onProjectView,
+  onCloseProject
 }: { 
   onStatusChange?: (text: string) => void;
   initialProjectId?: string | null;
   onProjectView?: (projectTitle: string | null) => void;
+  onCloseProject?: () => void;
 }) {
   const [selectedCategory, setSelectedCategory] = useState<"all" | "client" | "creative" | "personal">("all");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -53,13 +55,13 @@ export default function FileBrowser({
 
   // Auto-open project if initialProjectId is provided
   useEffect(() => {
-    if (initialProjectId && projects.length > 0) {
+    if (initialProjectId && projects.length > 0 && !viewingProject) {
       const project = projects.find(p => p._id === initialProjectId);
       if (project) {
         setViewingProject(project);
       }
     }
-  }, [initialProjectId, projects]);
+  }, [initialProjectId, projects, viewingProject]);
 
   // Update parent when viewing project changes
   useEffect(() => {
@@ -121,7 +123,10 @@ export default function FileBrowser({
       {/* Toolbar */}
       <div className="bg-grey-light flex gap-1 pb-1 shrink-0">
         <button
-          onClick={() => setViewingProject(null)}
+          onClick={() => {
+            setViewingProject(null);
+            onCloseProject?.();
+          }}
           className="px-6 py-1 text-sm cursor-pointer border border-t-white border-l-white border-r-black border-b-black bg-transparent"
         >
           ← Back
