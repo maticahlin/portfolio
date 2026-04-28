@@ -30,7 +30,10 @@ export type Project = {
   subcategory: "client" | "creative" | "personal";
   shortDescription: string;
   longDescription: string;
-  images: any[];
+  images: Array<{
+    url: string;
+    _type?: 'image' | 'file';
+  }>;
   isPinned?: boolean;
   p5Code?: string;
 }
@@ -53,7 +56,10 @@ export async function getProjects(): Promise<Project[]> {
       subcategory,
       shortDescription,
       longDescription,
-      "images": images[].asset->,
+      "images": images[]{
+        "url": asset->url,
+        "_type": _type
+      },
       isPinned,
       p5Code
     }

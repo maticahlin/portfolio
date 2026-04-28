@@ -35,11 +35,11 @@ export default function Window({
     theme = 'grey',
     showMaximize = false   
 }: WindowProps) {
-    const bgColor = theme === 'dark' ? '#1a1a1a' : '#e6e6e6';
-    const titleBg = theme === 'dark' ? '#000000' : '#4047c9';
-    const buttonBg = theme === 'dark' ? '#333333' : '#cccccc';
-    const borderLight = theme === 'dark' ? '#3a3a3a' : 'white';
-    const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
+    const bgColor = theme === 'dark' ? '#000000' : '#e6e6e6';
+const titleBg = theme === 'dark' ? '#1a1a1a' : '#4047c9';
+const buttonBg = theme === 'dark' ? '#2a2a2a' : '#cccccc';
+const borderLight = theme === 'dark' ? '#333333' : 'white';
+const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
 
     const getRandomPosition = () => {
         if (!desktopRef.current) return { x: 100, y: 100 };

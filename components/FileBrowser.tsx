@@ -174,12 +174,24 @@ export default function FileBrowser({
             <div className="space-y-4">
               {viewingProject.images?.filter(img => img && img.url).map((img, i) => (
                 <div key={i} className="border border-t-black border-l-black border-b-grey-dark border-r-grey-dark bg-grey-light p-1">
-                  <img
-                    src={img.url}
-                    alt=""
-                    className="w-full cursor-pointer hover:opacity-90"
-                    onClick={() => setLightboxImage(img.url)}
-                  />
+                  {img._type === 'file' ? (
+                    <video 
+                      src={img.url} 
+                      controls 
+                      loop 
+                      muted
+                      autoPlay
+                      playsInline
+                      className="w-full"
+                    />
+                  ) : (
+                    <img
+                      src={img.url}
+                      alt=""
+                      className="w-full cursor-pointer hover:opacity-90"
+                      onClick={() => setLightboxImage(img.url)}
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -267,16 +279,30 @@ export default function FileBrowser({
                   viewingProject.images
                     .filter(img => img && img.url)
                     .map((img, i) => (
-                      <div 
-                        key={i} 
-                        className="cursor-pointer hover:opacity-90"
-                        onClick={() => setLightboxImage(img.url)}
-                      >
-                        <img
-                          src={img.url}
-                          alt=""
-                          className="w-full"
-                        />
+                      <div key={i}>
+                        {img._type === 'file' ? (
+                          <video 
+                            src={img.url} 
+                            controls 
+                            loop 
+                            muted
+                            autoPlay
+                            playsInline
+                            className="w-full"
+                            style={{ maxHeight: '600px' }}
+                          />
+                        ) : (
+                          <div 
+                            className="cursor-pointer hover:opacity-90"
+                            onClick={() => setLightboxImage(img.url)}
+                          >
+                            <img
+                              src={img.url}
+                              alt=""
+                              className="w-full"
+                            />
+                          </div>
+                        )}
                       </div>
                     ))
                 ) : (
@@ -305,13 +331,29 @@ export default function FileBrowser({
             onClick={() => setLightboxImage(null)}
           >
             <div className="relative w-full h-full flex items-center justify-center">
-              {/* Main Image */}
-              <img 
-                src={lightboxImage} 
-                alt="" 
-                className="max-w-[90vw] max-h-[85vh] object-contain"
-                onClick={(e) => e.stopPropagation()}
-              />
+              {/* Main Image/Video */}
+              {(() => {
+                const currentItem = viewingProject?.images?.find(img => img.url === lightboxImage);
+                const isVideo = currentItem?._type === 'file';
+                
+                return isVideo ? (
+                  <video
+                    src={lightboxImage}
+                    controls
+                    loop
+                    autoPlay
+                    className="max-w-[90vw] max-h-[85vh] object-contain"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <img 
+                    src={lightboxImage} 
+                    alt="" 
+                    className="max-w-[90vw] max-h-[85vh] object-contain"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                );
+              })()}
 
               {/* Navigation Arrows */}
               {viewingProject && viewingProject.images && viewingProject.images.length > 1 && (() => {
@@ -573,13 +615,11 @@ function ImageCarousel({ images }: { images: any[] }) {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const previousImagesRef = React.useRef<string>('');
   
-  // Filter out null/undefined images and ensure they have url
   const validImages = React.useMemo(() => {
     if (!images || !Array.isArray(images)) return [];
     return images.filter(img => img && typeof img === 'object' && img.url && typeof img.url === 'string');
   }, [images]);
 
-  // Only reset index when the actual image URLs change
   React.useEffect(() => {
     const currentImagesKey = validImages.map(img => img.url).join(',');
     if (currentImagesKey !== previousImagesRef.current) {
@@ -606,7 +646,6 @@ function ImageCarousel({ images }: { images: any[] }) {
     );
   }
 
-  // Extra safety check
   const currentImage = validImages[currentIndex];
   if (!currentImage || !currentImage.url) {
     return (
@@ -618,11 +657,23 @@ function ImageCarousel({ images }: { images: any[] }) {
 
   return (
     <div className="w-full h-full bg-grey-mid flex items-center justify-center">
-      <img 
-        src={currentImage.url} 
-        alt="" 
-        className="w-full h-full object-cover"
-      />
+      {currentImage._type === 'file' ? (
+        <video 
+          key={currentImage.url}
+          src={currentImage.url} 
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <img 
+          src={currentImage.url} 
+          alt="" 
+          className="w-full h-full object-cover"
+        />
+      )}
     </div>
   );
 }

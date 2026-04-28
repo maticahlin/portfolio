@@ -11,7 +11,7 @@ import QRGenerator from "@/components/QRGenerator";
 import { getProjects, type Project } from "@/lib/sanity";
 import { useSearchParams, useRouter } from 'next/navigation';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 
 export default function HomeContent() {
   const [showProjects, setShowProjects] = useState(false);
@@ -187,10 +187,11 @@ export default function HomeContent() {
         {!isMobile && previewWindows.map((project, index) => {
           if (closedPreviews.has(project._id)) return null;
           
-          const validImages = project.images?.filter(img => img && img.url) || [];
-          if (validImages.length === 0) return null;
+          const validMedia = project.images?.filter(img => img && img.url) || [];
+          if (validMedia.length === 0) return null;
           
-          const randomImage = validImages[Math.floor(Math.random() * validImages.length)];
+          const randomMedia = validMedia[Math.floor(Math.random() * validMedia.length)];
+          const isVideo = randomMedia._type === 'file';
           const offsetX = index * 60;
           const offsetY = index * 80;
           
@@ -198,7 +199,8 @@ export default function HomeContent() {
             <PreviewWindow
               key={project._id}
               project={project}
-              imageUrl={randomImage.url}
+              mediaUrl={randomMedia.url}
+              isVideo={isVideo}
               offsetX={offsetX}
               offsetY={offsetY}
               isActive={activeWindow === `preview-${project._id}`}
@@ -293,7 +295,8 @@ export default function HomeContent() {
 
 function PreviewWindow({
   project,
-  imageUrl,
+  mediaUrl,
+  isVideo,
   offsetX,
   offsetY,
   isActive,
@@ -304,7 +307,8 @@ function PreviewWindow({
   theme
 }: {
   project: Project;
-  imageUrl: string;
+  mediaUrl: string;
+  isVideo: boolean;
   offsetX: number;
   offsetY: number;
   isActive: boolean;
@@ -315,35 +319,65 @@ function PreviewWindow({
   theme: 'grey' | 'dark';
 }) {
   const [dimensions, setDimensions] = useState({ width: 350, height: 250 });
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const imageUrlRef = useRef(imageUrl);
+  const [mediaLoaded, setMediaLoaded] = useState(false);
+  const mediaUrlRef = useRef(mediaUrl); // Lock initial media URL
+  const isVideoRef = useRef(isVideo); // Lock initial video state
 
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      let width = img.naturalWidth;
-      let height = img.naturalHeight;
-      
-      const maxWidth = 600;
-      const maxHeight = 500;
-      
-      if (width > maxWidth) {
-        height = (height * maxWidth) / width;
-        width = maxWidth;
-      }
-      
-      if (height > maxHeight) {
-        width = (width * maxHeight) / height;
-        height = maxHeight;
-      }
-      
-      setDimensions({ width: Math.round(width), height: Math.round(height) });
-      setImageLoaded(true);
-    };
-    img.src = imageUrlRef.current;
-  }, []);
+    if (isVideoRef.current) {
+      setDimensions({ width: 600, height: 400 });
+      setMediaLoaded(true);
+    } else {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.naturalWidth;
+        let height = img.naturalHeight;
+        
+        const maxWidth = 600;
+        const maxHeight = 500;
+        
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        
+        if (height > maxHeight) {
+          width = (width * maxHeight) / height;
+          height = maxHeight;
+        }
+        
+        setDimensions({ width: Math.round(width), height: Math.round(height) });
+        setMediaLoaded(true);
+      };
+      img.src = mediaUrlRef.current;
+    }
+  }, []); // Empty deps - only run once
 
-  if (!imageLoaded) return null;
+  // Memoize media content to prevent recreation
+  const mediaContent = useMemo(() => {
+    if (isVideoRef.current) {
+      return (
+        <video 
+          src={mediaUrlRef.current}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+          style={{ pointerEvents: 'none' }}
+        />
+      );
+    }
+    return (
+      <img 
+        src={mediaUrlRef.current}
+        alt={project.title}
+        className="w-full h-full object-cover"
+      />
+    );
+  }, []); // Empty deps - never recreate
+
+  if (!mediaLoaded) return null;
 
   return (
     <Window
@@ -365,11 +399,7 @@ function PreviewWindow({
         className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity overflow-hidden"
         onClick={onClick}
       >
-        <img 
-          src={imageUrlRef.current}
-          alt={project.title}
-          className="w-full h-full object-cover"
-        />
+        {mediaContent}
       </div>
     </Window>
   );
