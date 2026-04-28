@@ -106,10 +106,18 @@ export default defineType({
     }),
     defineField({
       name: 'images',
-      title: 'Project Images',
+      title: 'Project Images & Videos',
       type: 'array',
-      of: [{ type: 'image' }],
-      description: 'First image will be used for preview windows',
+      of: [
+        { type: 'image' },
+        {
+          type: 'file',
+          options: {
+            accept: 'video/mp4'
+          }
+        }
+      ],
+      description: 'One random item will be used in preview windows.',
       validation: Rule => Rule.required().min(1)
     }),
     defineField({
