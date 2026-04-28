@@ -28,7 +28,7 @@ export default function HomeContent() {
   const [mailStatusText, setMailStatusText] = useState("Have a project in mind? I'd be happy to learn about it.");
   const [showQR, setShowQR] = useState(false);
   const [isQRMinimized, setIsQRMinimized] = useState(false);
-  const [theme, setTheme] = useState<'grey' | 'dark'>('grey');
+  const [theme, setTheme] = useState<'grey' | 'dark'>('dark');
   const [projectViewTitle, setProjectViewTitle] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);  // ADD THIS
@@ -99,11 +99,11 @@ export default function HomeContent() {
   // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === '1') {
+      if (e.altKey && e.key === '1') {
         setTheme('grey');
         console.log('Switched to GREY theme');
       }
-      if (e.ctrlKey && e.key === '2') {
+      if (e.altKey && e.key === '2') {
         setTheme('dark');
         console.log('Switched to DARK theme');
       }
@@ -241,6 +241,7 @@ export default function HomeContent() {
                 setProjectViewTitle(null);
                 setSelectedProjectId(null);
               }}
+              theme={theme}
             />
           </Window>
         )}
@@ -258,9 +259,7 @@ export default function HomeContent() {
             desktopRef={desktopRef}
             theme={theme}
           >
-            <div className="bg-white h-full w-full">
-              <MailForm onStatusChange={setMailStatusText} />
-            </div>
+            <MailForm onStatusChange={setMailStatusText} theme={theme} />
           </Window>
         )}
 
@@ -279,7 +278,7 @@ export default function HomeContent() {
             initialHeight={550}
             theme={theme}
           >
-            <QRGenerator />
+            <QRGenerator theme={theme} />
           </Window>
         )}
 

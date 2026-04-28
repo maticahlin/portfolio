@@ -16,7 +16,7 @@ type WindowProps = {
     initialX?: number;
     initialY?: number;
     theme?: 'grey' | 'dark';
-    showMaximize?: boolean; // New prop to enable maximize button
+    showMaximize?: boolean;
 };
 
 export default function Window({ 
@@ -35,11 +35,14 @@ export default function Window({
     theme = 'grey',
     showMaximize = false   
 }: WindowProps) {
-    const bgColor = theme === 'dark' ? '#000000' : '#e6e6e6';
-const titleBg = theme === 'dark' ? '#1a1a1a' : '#4047c9';
-const buttonBg = theme === 'dark' ? '#2a2a2a' : '#cccccc';
-const borderLight = theme === 'dark' ? '#333333' : 'white';
-const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
+    const bgColor = theme === 'dark' ? '#474747' : '#e6e6e6';
+    const innerBg = theme === 'dark' ? '#323232' : '#ffffff';
+    const titleBg = theme === 'dark' ? '#323232' : '#4047c9';
+    const buttonBg = theme === 'dark' ? '#323232' : '#cccccc';
+    const buttonHoverBg = theme === 'dark' ? '#474747' : '#ffffff';
+    const textColor = theme === 'dark' ? '#E2E2E2' : '#000000';
+    const borderLight = theme === 'dark' ? '#9F9F9F' : 'white';
+    const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
 
     const getRandomPosition = () => {
         if (!desktopRef.current) return { x: 100, y: 100 };
@@ -86,13 +89,11 @@ const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
         if (!desktopRef.current) return;
 
         if (!isMaximized) {
-            // Store current state before maximizing
             setPrevState({
                 position: { ...position },
                 size: { ...size }
             });
 
-            // Maximize to fill desktop
             const desktop = desktopRef.current.getBoundingClientRect();
             setPosition({ x: 0, y: 0 });
             setSize({ 
@@ -101,7 +102,6 @@ const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
             });
             setIsMaximized(true);
         } else {
-            // Restore previous state
             setPosition(prevState.position);
             setSize(prevState.size);
             setIsMaximized(false);
@@ -171,8 +171,8 @@ const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
                 backgroundColor: bgColor,
                 borderTop: `2px solid ${borderLight}`,
                 borderLeft: `2px solid ${borderLight}`,
-                borderRight: '2px solid black',
-                borderBottom: '2px solid black',
+                borderRight: `2px solid ${borderDark}`,
+                borderBottom: `2px solid ${borderDark}`,
                 paddingTop: '1px',
                 paddingLeft: '1px',
                 paddingRight: '2px',
@@ -186,8 +186,8 @@ const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
                 backgroundColor: bgColor,
                 borderTop: `2px solid ${borderLight}`,
                 borderLeft: `2px solid ${borderLight}`,
-                borderRight: '2px solid black',
-                borderBottom: '2px solid black',
+                borderRight: `2px solid ${borderDark}`,
+                borderBottom: `2px solid ${borderDark}`,
                 paddingTop: '1px',
                 paddingLeft: '1px',
                 paddingRight: '2px',
@@ -198,7 +198,7 @@ const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
             {/* TITLE BAR */}
             <div 
                 className={`h-7 px-1 flex items-center justify-between select-none ${!isMaximized && !isMobile ? 'cursor-move' : ''}`}
-                style={{ backgroundColor: titleBg }}
+                style={{ backgroundColor: titleBg, color: textColor }}
                 onMouseDown={(e) => {
                     e.preventDefault();
                     onClick?.();
@@ -215,30 +215,29 @@ const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
             >
                 <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
                     {icon && <img src={icon} alt="" className="w-5 h-5 shrink-0" />}
-                    <span className="text-white text-sm truncate">{title}</span>
+                    <span className="text-sm truncate" style={{ color: textColor }}>{title}</span>
                 </div>
 
                 <div className="flex gap-1 shrink-0">
-                    {/* Minimize - commented out for future use */}
-                    {/*{onMinimize && (
-                        <button 
-                            onClick={onMinimize} 
-                            className="w-6 h-5 border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:brightness-110 transition-all"
-                            style={{ backgroundColor: buttonBg }}
-                        >
-                            <span className="text-xs leading-none">_</span>
-                        </button>
-                    )}*/}
-                    
-                    {/* Maximize - Desktop only, only if showMaximize is true */}
+                    {/* Maximize */}
                     {showMaximize && !isMobile && (
                         <button 
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleMaximize();
                             }}
-                            className="w-6 h-5 border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:brightness-110 transition-all"
-                            style={{ backgroundColor: buttonBg }}
+                            className="w-6 h-5 border flex items-center justify-center cursor-pointer hover:brightness-110 transition-all"
+                            style={{ 
+                                backgroundColor: buttonBg,
+                                borderTopColor: borderLight,
+                                borderLeftColor: borderLight,
+                                borderRightColor: borderDark,
+                                borderBottomColor: borderDark,
+                                color: textColor,
+                                boxShadow: theme === 'dark' 
+                                    ? `inset 1px 1px 0 0 ${borderLight}, inset -1px -1px 0 0 ${borderDark}`
+                                    : 'inset 1px 1px 0 0 #dfdfdf, inset -1px -1px 0 0 #808080'
+                            }}
                             title={isMaximized ? "Restore" : "Maximize"}
                         >
                             <span className="text-xs leading-none">{isMaximized ? '❐' : '□'}</span>
@@ -248,40 +247,52 @@ const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
                     {/* Close */}
                     <button 
                         onClick={onClose} 
-                        className="w-6 h-5 border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:brightness-110 transition-all"
-                        style={{ backgroundColor: buttonBg }}
+                        className="w-6 h-5 border flex items-center justify-center cursor-pointer hover:brightness-110 transition-all"
+                        style={{ 
+                            backgroundColor: buttonBg,
+                            borderTopColor: borderLight,
+                            borderLeftColor: borderLight,
+                            borderRightColor: borderDark,
+                            borderBottomColor: borderDark,
+                            color: textColor,
+                            boxShadow: theme === 'dark' 
+                                ? `inset 1px 1px 0 0 ${borderLight}, inset -1px -1px 0 0 ${borderDark}`
+                                : 'inset 1px 1px 0 0 #dfdfdf, inset -1px -1px 0 0 #808080'
+                        }}
                     >
                         <span className="text-xs leading-none">✕</span>
                     </button>
                 </div>
             </div>
 
-            {/* DIVIDER + spacing */}
+            {/* DIVIDER */}
             <div className="h-0.5" />
             <div className="h-px" style={{ backgroundColor: borderLight }} />
             <div className="h-px" style={{ backgroundColor: borderDark }} />
             <div className="h-0.5" />
 
-            {/* Content area */}
+            {/* Content */}
             <div className="flex-1 overflow-auto">
                 {children}
             </div>
 
             <div className="h-1" />
-            {/* Status bar */}
+            
+            {/* Status Bar */}
             <div 
                 className="h-7 border flex items-center px-1 gap-2 shrink-0"
                 style={{ 
-                    backgroundColor: bgColor,
+                    backgroundColor: innerBg,
                     borderTopColor: borderDark,
                     borderLeftColor: borderDark,
                     borderBottomColor: borderLight,
-                    borderRightColor: borderLight
+                    borderRightColor: borderLight,
+                    color: textColor
                 }}
             >
                 <span className="text-sm truncate overflow-hidden whitespace-nowrap flex-1">{statusText || "Ready"}</span>
                 
-                {/* Resize handle - hide when maximized */}
+                {/* Resize handle */}
                 {!isMaximized && !isMobile && (
                     <div
                         className="cursor-nwse-resize shrink-0 hover:opacity-100 transition-opacity"
@@ -292,10 +303,10 @@ const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
                         }}
                     >
                         <svg width="14" height="14" viewBox="0 0 14 14" className="opacity-50">
-                            <line x1="14" y1="0" x2="0" y2="14" stroke="#808080" strokeWidth="1" />
-                            <line x1="14" y1="5" x2="5" y2="14" stroke="#808080" strokeWidth="1" />
-                            <line x1="14" y1="10" x2="10" y2="14" stroke="#808080" strokeWidth="1" />
-                            <line x1="14" y1="14" x2="14" y2="14" stroke="#808080" strokeWidth="1" />
+                            <line x1="14" y1="0" x2="0" y2="14" stroke={textColor} strokeWidth="1" />
+                            <line x1="14" y1="5" x2="5" y2="14" stroke={textColor} strokeWidth="1" />
+                            <line x1="14" y1="10" x2="10" y2="14" stroke={textColor} strokeWidth="1" />
+                            <line x1="14" y1="14" x2="14" y2="14" stroke={textColor} strokeWidth="1" />
                         </svg>
                     </div>
                 )}
