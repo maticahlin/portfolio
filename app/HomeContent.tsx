@@ -10,6 +10,7 @@ import FileBrowser from "@/components/FileBrowser";
 import QRGenerator from "@/components/QRGenerator";
 import { getProjects, type Project } from "@/lib/sanity";
 import { useSearchParams, useRouter } from 'next/navigation';
+import { AnimatePresence } from 'framer-motion';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 
@@ -184,6 +185,7 @@ export default function HomeContent() {
           />
         </div>
 
+        <AnimatePresence>
         {!isMobile && previewWindows.map((project, index) => {
           if (closedPreviews.has(project._id)) return null;
           
@@ -212,7 +214,9 @@ export default function HomeContent() {
             />
           );
         })}
+        </AnimatePresence>
 
+        <AnimatePresence>
         {showProjects && (
           <Window 
             title={projectViewTitle ? `Project Browser - ${projectViewTitle}` : "Project Browser"}
@@ -245,7 +249,9 @@ export default function HomeContent() {
             />
           </Window>
         )}
+        </AnimatePresence>
 
+        <AnimatePresence>
         {showMail && (
           <Window 
             title="Mail" 
@@ -262,7 +268,9 @@ export default function HomeContent() {
             <MailForm onStatusChange={setMailStatusText} theme={theme} />
           </Window>
         )}
+        </AnimatePresence>
 
+        <AnimatePresence>
         {showQR && (
           <Window 
             title="QR Code Generator" 
@@ -281,6 +289,7 @@ export default function HomeContent() {
             <QRGenerator theme={theme} />
           </Window>
         )}
+        </AnimatePresence>
 
         {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
       </div>

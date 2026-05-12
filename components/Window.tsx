@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 
 type WindowProps = {
     title: string;
@@ -69,6 +70,7 @@ export default function Window({
         position: { x: 0, y: 0 }, 
         size: { width: 0, height: 0 } 
     });
+    const [pressedButton, setPressedButton] = useState<'maximize' | 'close' | null>(null);
     
     const isDraggingRef = useRef(false);
     const isResizingRef = useRef(false);
@@ -106,6 +108,21 @@ export default function Window({
             setSize(prevState.size);
             setIsMaximized(false);
         }
+    };
+
+    const getButtonStyle = (name: 'maximize' | 'close') => {
+        const pressed = pressedButton === name;
+        return {
+            backgroundColor: '#323232',
+            borderTopColor:    pressed ? '#000000' : '#9F9F9F',
+            borderLeftColor:   pressed ? '#000000' : '#9F9F9F',
+            borderRightColor:  pressed ? '#9F9F9F' : '#000000',
+            borderBottomColor: pressed ? '#9F9F9F' : '#000000',
+            boxShadow: pressed
+            ? 'inset 1px 1px 0 0 #000000, inset -1px -1px 0 0 #9F9F9F'
+            : 'inset 1px 1px 0 0 #9F9F9F, inset -1px -1px 0 0 #000000',
+            color: '#E2E2E2',
+        };
     };
 
     React.useEffect(() => {
@@ -161,9 +178,13 @@ export default function Window({
     if (isMinimized) return null;
 
     return (
-        <div 
+        <motion.div 
             ref={windowRef} 
             className={`${isMobile ? 'absolute inset-0' : 'absolute'} shadow-lg flex flex-col`}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
             style={isMobile ? {
                 width: '100%',
                 height: '100%',
@@ -220,48 +241,31 @@ export default function Window({
 
                 <div className="flex gap-1 shrink-0">
                     {/* Maximize */}
-                    {showMaximize && !isMobile && (
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleMaximize();
-                            }}
-                            className="w-6 h-5 border flex items-center justify-center cursor-pointer hover:brightness-110 transition-all"
-                            style={{ 
-                                backgroundColor: buttonBg,
-                                borderTopColor: borderLight,
-                                borderLeftColor: borderLight,
-                                borderRightColor: borderDark,
-                                borderBottomColor: borderDark,
-                                color: textColor,
-                                boxShadow: theme === 'dark' 
-                                    ? `inset 1px 1px 0 0 ${borderLight}, inset -1px -1px 0 0 ${borderDark}`
-                                    : 'inset 1px 1px 0 0 #dfdfdf, inset -1px -1px 0 0 #808080'
-                            }}
-                            title={isMaximized ? "Restore" : "Maximize"}
-                        >
-                            <span className="text-xs leading-none">{isMaximized ? '❐' : '□'}</span>
-                        </button>
-                    )}
-                    
-                    {/* Close */}
-                    <button 
-                        onClick={onClose} 
-                        className="w-6 h-5 border flex items-center justify-center cursor-pointer hover:brightness-110 transition-all"
-                        style={{ 
-                            backgroundColor: buttonBg,
-                            borderTopColor: borderLight,
-                            borderLeftColor: borderLight,
-                            borderRightColor: borderDark,
-                            borderBottomColor: borderDark,
-                            color: textColor,
-                            boxShadow: theme === 'dark' 
-                                ? `inset 1px 1px 0 0 ${borderLight}, inset -1px -1px 0 0 ${borderDark}`
-                                : 'inset 1px 1px 0 0 #dfdfdf, inset -1px -1px 0 0 #808080'
-                        }}
-                    >
-                        <span className="text-xs leading-none">✕</span>
-                    </button>
+{showMaximize && !isMobile && (
+  <button
+    onMouseDown={() => setPressedButton('maximize')}
+    onMouseUp={() => { setPressedButton(null); handleMaximize(); }}
+    onMouseLeave={() => setPressedButton(null)}
+    onClick={(e) => e.stopPropagation()}
+    className="w-6 h-5 border flex items-center justify-center cursor-pointer"
+    style={getButtonStyle('maximize')}
+    title={isMaximized ? "Restore" : "Maximize"}
+  >
+    <span className="text-xs leading-none">{isMaximized ? '❐' : '□'}</span>
+  </button>
+)}
+
+{/* Close */}
+<button
+  onMouseDown={() => setPressedButton('close')}
+  onMouseUp={() => { setPressedButton(null); onClose?.(); }}
+  onMouseLeave={() => setPressedButton(null)}
+  onClick={(e) => e.stopPropagation()}
+  className="w-6 h-5 border flex items-center justify-center cursor-pointer"
+  style={getButtonStyle('close')}
+>
+  <span className="text-xs leading-none">✕</span>
+</button>
                 </div>
             </div>
 
@@ -311,6 +315,6 @@ export default function Window({
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 }
