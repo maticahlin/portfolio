@@ -241,31 +241,31 @@ export default function Window({
 
                 <div className="flex gap-1 shrink-0">
                     {/* Maximize */}
-{showMaximize && !isMobile && (
-  <button
-    onMouseDown={() => setPressedButton('maximize')}
-    onMouseUp={() => { setPressedButton(null); handleMaximize(); }}
-    onMouseLeave={() => setPressedButton(null)}
-    onClick={(e) => e.stopPropagation()}
-    className="w-6 h-5 border flex items-center justify-center cursor-pointer"
-    style={getButtonStyle('maximize')}
-    title={isMaximized ? "Restore" : "Maximize"}
-  >
-    <span className="text-xs leading-none">{isMaximized ? '❐' : '□'}</span>
-  </button>
-)}
+                    {showMaximize && !isMobile && (
+                    <button
+                        onMouseDown={(e) => { e.stopPropagation(); setPressedButton('maximize'); }}
+                        onMouseUp={() => { setPressedButton(null); handleMaximize(); }}
+                        onMouseLeave={() => setPressedButton(null)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-6 h-5 border flex items-center justify-center cursor-pointer"
+                        style={getButtonStyle('maximize')}
+                        title={isMaximized ? "Restore" : "Maximize"}
+                    >
+                        <span className="text-xs leading-none">{isMaximized ? '❐' : '□'}</span>
+                    </button>
+                    )}
 
-{/* Close */}
-<button
-  onMouseDown={() => setPressedButton('close')}
-  onMouseUp={() => { setPressedButton(null); onClose?.(); }}
-  onMouseLeave={() => setPressedButton(null)}
-  onClick={(e) => e.stopPropagation()}
-  className="w-6 h-5 border flex items-center justify-center cursor-pointer"
-  style={getButtonStyle('close')}
->
-  <span className="text-xs leading-none">✕</span>
-</button>
+                    {/* Close */}
+                    <button
+                    onMouseDown={(e) => { e.stopPropagation(); setPressedButton('close'); }}
+                    onMouseUp={() => { setPressedButton(null); onClose?.(); }}
+                    onMouseLeave={() => setPressedButton(null)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-6 h-5 border flex items-center justify-center cursor-pointer"
+                    style={getButtonStyle('close')}
+                    >
+                    <span className="text-xs leading-none">✕</span>
+                    </button>
                 </div>
             </div>
 

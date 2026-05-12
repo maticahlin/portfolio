@@ -290,8 +290,9 @@ export default function HomeContent() {
           </Window>
         )}
         </AnimatePresence>
-
-        {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
+        <AnimatePresence>
+          {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
+        </AnimatePresence>
       </div>
 
       <TaskBar 
