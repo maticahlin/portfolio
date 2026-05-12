@@ -1,36 +1,58 @@
 "use client";
+import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 export default function AboutDialog({ onClose }: { onClose: () => void }) {
+  const [pressed, setPressed] = useState(false);
+
   return (
     <>
-      {/* Dark overlay backdrop */}
-      <div 
+      <motion.div 
         className="absolute inset-0 bg-black/40 z-40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
         onClick={onClose}
       />
       
-      {/* Dialog */}
-      <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 bg-grey-mid border-2 border-t-white border-l-white border-r-black border-b-black shadow-2xl z-50"
+      <motion.div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] md:w-200 max-h-[90vh] overflow-y-auto bg-grey-mid border border-t-white border-l-white border-r-black border-b-black shadow-2xl z-50"
+        initial={{ scale: 0.95, opacity: 0  }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
       >
-        {/* Close button - top right */}
         <button
-          onClick={onClose}
-          className="absolute top-2 right-2 w-6 h-5 bg-grey-mid border border-t-white border-l-white border-r-black border-b-black flex items-center justify-center shadow-[inset_1px_1px_0_0_#dfdfdf,inset_-1px_-1px_0_0_#808080] cursor-pointer hover:bg-grey-light transition-colors"
+          onMouseDown={() => setPressed(true)}
+          onMouseUp={() => { setPressed(false); onClose(); }}
+          onMouseLeave={() => setPressed(false)}
+          className="absolute top-2 right-2 w-6 h-5 border flex items-center justify-center cursor-pointer"
+          style={{
+            backgroundColor: '#cccccc',
+            borderTopColor:    pressed ? '#a6a6a6' : 'white',
+            borderLeftColor:   pressed ? '#a6a6a6' : 'white',
+            borderRightColor:  pressed ? 'white' : '#a6a6a6',
+            borderBottomColor: pressed ? 'white' : '#a6a6a6',
+            boxShadow: pressed
+              ? 'inset 1px 1px 0 0 #808080, inset -1px -1px 0 0 #dfdfdf'
+              : 'inset 1px 1px 0 0 #dfdfdf, inset -1px -1px 0 0 #808080',
+            color: '#000000',
+          }}
         >
           <span className="text-xs leading-none">✕</span>
         </button>
 
-        <div className="flex p-8">
-          {/* Left side - Image */}
-          <div className="w-32 shrink-0 mr-8">
-            <img src="/profile.png" alt="" className="w-full aspect-square border-2 border-t-white border-l-white border-r-grey-dark border-b-grey-dark" />
+        <div className="flex flex-col md:flex-row p-5 md:p-8">
+          {/* Image */}
+          <div className="w-24 md:w-32 shrink-0 mb-5 md:mb-0 md:mr-8">
+            <img src="/profile.png" alt="" className="w-full aspect-square border border-t-white border-l-white border-r-grey-dark border-b-grey-dark" />
           </div>
 
-          {/* Right side - Content */}
+          {/* Content */}
           <div className="flex-1">
-            <h1 className="text-7xl font-serif leading-tight">Matic Ahlin</h1>
-            <p className="text-sm italic mb-6">Designing visuals. Building websites.</p>
+            <h1 className="text-4xl md:text-7xl font-serif leading-tight">Matic Ahlin</h1>
+            <p className="text-sm italic mb-4 md:mb-6">Designing visuals. Building websites.</p>
 
             <p className="text-sm leading-relaxed mb-4">
               Born in 2001, I'm a visual designer and frontend developer based in Slovenia. After completing my Bachelor's degree in Visual Communications, I discovered a passion for merging design and code—exploring the web as a medium for interactivity, storytelling, and creative expression.
@@ -60,7 +82,7 @@ export default function AboutDialog({ onClose }: { onClose: () => void }) {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

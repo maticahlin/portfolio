@@ -1,6 +1,7 @@
 "use client";
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { border, t } from '@/lib/theme';
 
 export default function AboutDialog({ onClose }: { onClose: () => void }) {
   const [pressed, setPressed] = useState(false);
@@ -34,9 +35,6 @@ export default function AboutDialog({ onClose }: { onClose: () => void }) {
             borderLeftColor:   pressed ? '#a6a6a6' : 'white',
             borderRightColor:  pressed ? 'white' : '#a6a6a6',
             borderBottomColor: pressed ? 'white' : '#a6a6a6',
-            boxShadow: pressed
-              ? 'inset 1px 1px 0 0 #808080, inset -1px -1px 0 0 #dfdfdf'
-              : 'inset 1px 1px 0 0 #dfdfdf, inset -1px -1px 0 0 #808080',
             color: '#000000',
           }}
         >

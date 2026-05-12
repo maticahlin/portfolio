@@ -2,39 +2,28 @@
 import React from "react";
 
 export default function TaskBar({ 
-  openWindows,
   onOpenAbout 
 }: { 
-  openWindows?: Array<{ title: string; icon?: string; isMinimized: boolean; isActive: boolean; onRestore: () => void }>;
   onOpenAbout?: () => void;
 }) {
-  return (
-    <div className="w-full h-11 py-1 bg-desktop-dark flex items-stretch justify-between px-2.5 shrink-0">
-      {/* Open window buttons */}
-      <div className="flex items-stretch gap-1">
-        {openWindows?.map((window, i) => (
-          <button
-            key={i}
-            onClick={window.onRestore}
-            className={`
-              h-full bg-grey-dark text-black text-sm flex items-center gap-2 leading-none px-2 border cursor-pointer transition-colors
-              ${
-                !window.isMinimized && window.isActive
-                  ? "border-t-black border-l-black border-r-white border-b-white" // PRESSED (active)
-                  : "border-t-white border-l-white border-r-black border-b-black" // RAISED (open)
-              }
-            `}
-          >
-            {window.icon && <img src={window.icon} alt="" className="w-5 h-5" />}
-            {window.title}
-          </button>
-        ))}
-      </div>
+  const [isMobile, setIsMobile] = React.useState(false);
 
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return (
+    <div className="w-full h-9 py-1 flex items-stretch justify-end px-2.5 shrink-0">
       {/* Right side - System tray + Clock */}
       <div className="flex items-stretch gap-2">
         {/* System Tray Icons */}
-        <div className="flex items-center gap-3.5 px-2 border-l border-grey-dark">
+        <div className="flex items-center gap-3.5 px-2">
           {/* LinkedIn */}
           <button
             onClick={() => window.open('https://www.linkedin.com/in/matic-ahlin/', '_blank')}
@@ -46,12 +35,12 @@ export default function TaskBar({
           
           {/* Instagram */}
           <button
-    onClick={() => window.open('https://www.instagram.com/maticahlin/', '_blank')}
-    className="text-[14px] font-sans text-white cursor-pointer hover:underline"
-    title="Instagram"
-  >
-    Instagram
-  </button>
+            onClick={() => window.open('https://www.instagram.com/maticahlin/', '_blank')}
+            className="text-[14px] font-sans text-white cursor-pointer hover:underline"
+            title="Instagram"
+          >
+            Instagram
+          </button>
           
           {/* About/CV */}
           <button
@@ -63,10 +52,15 @@ export default function TaskBar({
           </button>
         </div>
 
-        {/* Clock */}
-        <div className="h-full flex items-center border border-grey-dark bg-desktop-dark px-2 text-sm font-sans text-white leading-none">
-          <Clock />
-        </div>
+        {/* Divider + Clock - Desktop only */}
+        {!isMobile && (
+          <>
+            <div className="border-l border-grey-dark" />
+            <div className="h-full flex items-center px-2 text-sm font-sans text-white leading-none border border-grey-dark">
+              <Clock />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

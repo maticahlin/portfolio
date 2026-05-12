@@ -210,7 +210,6 @@ export default function HomeContent() {
               onClose={() => setClosedPreviews(prev => new Set([...prev, project._id]))}
               onClick={() => handlePreviewClick(project._id)}
               desktopRef={desktopRef}
-              theme={theme}
             />
           );
         })}
@@ -233,7 +232,6 @@ export default function HomeContent() {
             initialWidth={1350}
             initialHeight={675}
             statusText={projectsStatusText}
-            theme={theme}
             showMaximize={true}
           >
             <FileBrowser 
@@ -245,7 +243,6 @@ export default function HomeContent() {
                 setProjectViewTitle(null);
                 setSelectedProjectId(null);
               }}
-              theme={theme}
             />
           </Window>
         )}
@@ -263,9 +260,8 @@ export default function HomeContent() {
             onClick={() => setActiveWindow("mail")}
             statusText={mailStatusText}
             desktopRef={desktopRef}
-            theme={theme}
           >
-            <MailForm onStatusChange={setMailStatusText} theme={theme} />
+            <MailForm onStatusChange={setMailStatusText} />
           </Window>
         )}
         </AnimatePresence>
@@ -284,9 +280,8 @@ export default function HomeContent() {
             desktopRef={desktopRef}
             initialWidth={500}
             initialHeight={550}
-            theme={theme}
           >
-            <QRGenerator theme={theme} />
+            <QRGenerator />
           </Window>
         )}
         </AnimatePresence>
@@ -313,7 +308,6 @@ function PreviewWindow({
   onClose,
   onClick,
   desktopRef,
-  theme
 }: {
   project: Project;
   mediaUrl: string;
@@ -325,7 +319,6 @@ function PreviewWindow({
   onClose: () => void;
   onClick: () => void;
   desktopRef: React.RefObject<HTMLDivElement | null>;
-  theme: 'grey' | 'dark';
 }) {
   const [dimensions, setDimensions] = useState({ width: 350, height: 250 });
   const [mediaLoaded, setMediaLoaded] = useState(false);
@@ -402,7 +395,6 @@ function PreviewWindow({
       initialHeight={dimensions.height}
       initialX={200 + offsetX}
       initialY={150 + offsetY}
-      theme={theme}
     >
       <div 
         className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity overflow-hidden"

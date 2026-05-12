@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { t, border, anim } from '@/lib/theme';
 
 type WindowProps = {
     title: string;
@@ -16,7 +17,6 @@ type WindowProps = {
     initialHeight?: number;
     initialX?: number;
     initialY?: number;
-    theme?: 'grey' | 'dark';
     showMaximize?: boolean;
 };
 
@@ -33,75 +33,46 @@ export default function Window({
     desktopRef,
     initialWidth = 600,
     initialHeight = 400,
-    theme = 'grey',
-    showMaximize = false   
+    showMaximize = false,
 }: WindowProps) {
-    const bgColor = theme === 'dark' ? '#474747' : '#e6e6e6';
-    const innerBg = theme === 'dark' ? '#323232' : '#ffffff';
-    const titleBg = theme === 'dark' ? '#323232' : '#4047c9';
-    const buttonBg = theme === 'dark' ? '#323232' : '#cccccc';
-    const buttonHoverBg = theme === 'dark' ? '#474747' : '#ffffff';
-    const textColor = theme === 'dark' ? '#E2E2E2' : '#000000';
-    const borderLight = theme === 'dark' ? '#9F9F9F' : 'white';
-    const borderDark = theme === 'dark' ? '#000000' : '#a6a6a6';
-
     const getRandomPosition = () => {
         if (!desktopRef.current) return { x: 100, y: 100 };
-        
         const desktop = desktopRef.current.getBoundingClientRect();
-        const windowWidth = initialWidth;
-        const windowHeight = initialHeight;
-        
-        const maxX = Math.max(0, desktop.width - windowWidth - 20);
-        const maxY = Math.max(0, desktop.height - windowHeight - 20);
-        
-        const randomX = Math.floor(Math.random() * maxX);
-        const randomY = Math.floor(Math.random() * maxY);
-        
-        return { x: randomX, y: randomY };
+        const maxX = Math.max(0, desktop.width  - initialWidth  - 20);
+        const maxY = Math.max(0, desktop.height - initialHeight - 20);
+        return {
+            x: Math.floor(Math.random() * maxX),
+            y: Math.floor(Math.random() * maxY),
+        };
     };
 
-    const [position, setPosition] = React.useState(getRandomPosition());
-    const [size, setSize] = React.useState({ width: initialWidth, height: initialHeight });
+    const [position, setPosition]   = React.useState(getRandomPosition());
+    const [size, setSize]           = React.useState({ width: initialWidth, height: initialHeight });
     const [isDragging, setIsDragging] = React.useState(false);
     const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
     const [isMaximized, setIsMaximized] = React.useState(false);
-    const [prevState, setPrevState] = React.useState({ 
-        position: { x: 0, y: 0 }, 
-        size: { width: 0, height: 0 } 
-    });
+    const [prevState, setPrevState]  = React.useState({ position: { x: 0, y: 0 }, size: { width: 0, height: 0 } });
     const [pressedButton, setPressedButton] = useState<'maximize' | 'close' | null>(null);
-    
-    const isDraggingRef = useRef(false);
-    const isResizingRef = useRef(false);
-    const windowRef = useRef<HTMLDivElement>(null);
-    const [isMobile, setIsMobile] = useState(false);
+    const [isMobile, setIsMobile]   = useState(false);
+
+    const isDraggingRef  = useRef(false);
+    const isResizingRef  = useRef(false);
+    const windowRef      = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-        
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        const check = () => setIsMobile(window.innerWidth < 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
     }, []);
 
     const handleMaximize = () => {
         if (!desktopRef.current) return;
-
         if (!isMaximized) {
-            setPrevState({
-                position: { ...position },
-                size: { ...size }
-            });
-
+            setPrevState({ position: { ...position }, size: { ...size } });
             const desktop = desktopRef.current.getBoundingClientRect();
             setPosition({ x: 0, y: 0 });
-            setSize({ 
-                width: desktop.width, 
-                height: desktop.height 
-            });
+            setSize({ width: desktop.width, height: desktop.height });
             setIsMaximized(true);
         } else {
             setPosition(prevState.position);
@@ -111,115 +82,76 @@ export default function Window({
     };
 
     const getButtonStyle = (name: 'maximize' | 'close') => {
-        const pressed = pressedButton === name;
-        return {
-            backgroundColor: '#323232',
-            borderTopColor:    pressed ? '#000000' : '#9F9F9F',
-            borderLeftColor:   pressed ? '#000000' : '#9F9F9F',
-            borderRightColor:  pressed ? '#9F9F9F' : '#000000',
-            borderBottomColor: pressed ? '#9F9F9F' : '#000000',
-            boxShadow: pressed
-            ? 'inset 1px 1px 0 0 #000000, inset -1px -1px 0 0 #9F9F9F'
-            : 'inset 1px 1px 0 0 #9F9F9F, inset -1px -1px 0 0 #000000',
-            color: '#E2E2E2',
-        };
+    const pressed = pressedButton === name;
+    return pressed
+        ? { ...border.button.pressed, backgroundColor: t.bgInner, color: t.text }
+        : { ...border.button.raised,  backgroundColor: t.bgInner, color: t.text };
     };
 
     React.useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (isDraggingRef.current && desktopRef.current && windowRef.current && !isMaximized) {
-                const desktop = desktopRef.current.getBoundingClientRect();
+                const desktop    = desktopRef.current.getBoundingClientRect();
                 const windowRect = windowRef.current.getBoundingClientRect();
-                
                 const newX = e.clientX - desktop.left - dragOffset.x;
-                const newY = e.clientY - desktop.top - dragOffset.y;
-                
-                const clampedX = Math.max(0, Math.min(newX, desktop.width - windowRect.width));
-                const clampedY = Math.max(0, Math.min(newY, desktop.height - windowRect.height));
-                
+                const newY = e.clientY - desktop.top  - dragOffset.y;
                 setPosition({
-                    x: clampedX,
-                    y: clampedY
+                    x: Math.max(0, Math.min(newX, desktop.width  - windowRect.width)),
+                    y: Math.max(0, Math.min(newY, desktop.height - windowRect.height)),
                 });
             }
-
             if (isResizingRef.current && desktopRef.current && windowRef.current && !isMaximized) {
-                const desktop = desktopRef.current.getBoundingClientRect();
                 const windowRect = windowRef.current.getBoundingClientRect();
-                
-                const newWidth = e.clientX - windowRect.left;
-                const newHeight = e.clientY - windowRect.top;
-                
-                const minWidth = 200;
-                const minHeight = 150;
-                
                 setSize({
-                    width: Math.max(minWidth, newWidth),
-                    height: Math.max(minHeight, newHeight)
+                    width:  Math.max(200, e.clientX - windowRect.left),
+                    height: Math.max(150, e.clientY - windowRect.top),
                 });
             }
         };
 
         const handleMouseUp = () => {
             setIsDragging(false);
-            isDraggingRef.current = false;
-            isResizingRef.current = false;
+            isDraggingRef.current  = false;
+            isResizingRef.current  = false;
         };
 
         document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-
+        document.addEventListener('mouseup',   handleMouseUp);
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('mouseup',   handleMouseUp);
         };
     }, [dragOffset, isMaximized]);
 
     if (isMinimized) return null;
 
+    const outerStyle = isMobile ? {
+        width: '100%', height: '100%',
+        zIndex: isActive ? 10 : 1,
+        backgroundColor: t.bgWindow,
+        ...border.window,
+        paddingTop: '1px', paddingLeft: '1px', paddingRight: '1px', paddingBottom: '1px',
+    } : {
+        left: `${position.x}px`, top: `${position.y}px`,
+        width: `${size.width}px`, height: `${size.height}px`,
+        zIndex: isActive ? 10 : 1,
+        backgroundColor: t.bgWindow,
+        ...border.window,
+        paddingTop: '1px', paddingLeft: '1px', paddingRight: '1px', paddingBottom: '1px',
+    };
+
     return (
-        <motion.div 
-            ref={windowRef} 
+        <motion.div
+            ref={windowRef}
             className={`${isMobile ? 'absolute inset-0' : 'absolute'} shadow-lg flex flex-col`}
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
-            style={isMobile ? {
-                width: '100%',
-                height: '100%',
-                zIndex: isActive ? 10 : 1,
-                backgroundColor: bgColor,
-                borderTop: `2px solid ${borderLight}`,
-                borderLeft: `2px solid ${borderLight}`,
-                borderRight: `2px solid ${borderDark}`,
-                borderBottom: `2px solid ${borderDark}`,
-                paddingTop: '1px',
-                paddingLeft: '1px',
-                paddingRight: '2px',
-                paddingBottom: '2px'
-            } : { 
-                left: `${position.x}px`, 
-                top: `${position.y}px`,
-                width: `${size.width}px`,
-                height: `${size.height}px`,
-                zIndex: isActive ? 10 : 1,
-                backgroundColor: bgColor,
-                borderTop: `2px solid ${borderLight}`,
-                borderLeft: `2px solid ${borderLight}`,
-                borderRight: `2px solid ${borderDark}`,
-                borderBottom: `2px solid ${borderDark}`,
-                paddingTop: '1px',
-                paddingLeft: '1px',
-                paddingRight: '2px',
-                paddingBottom: '2px'
-            }}
+            {...anim.window}
+            style={outerStyle}
             onClick={onClick}
         >
             {/* TITLE BAR */}
-            <div 
+            <div
                 className={`h-7 px-1 flex items-center justify-between select-none ${!isMaximized && !isMobile ? 'cursor-move' : ''}`}
-                style={{ backgroundColor: titleBg, color: textColor }}
+                style={{ backgroundColor: t.bgInner, color: t.text }}
                 onMouseDown={(e) => {
                     e.preventDefault();
                     onClick?.();
@@ -229,50 +161,47 @@ export default function Window({
                         isDraggingRef.current = true;
                         setDragOffset({
                             x: e.clientX - desktop.left - position.x,
-                            y: e.clientY - desktop.top - position.y
+                            y: e.clientY - desktop.top  - position.y,
                         });
                     }
                 }}
             >
                 <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
                     {icon && <img src={icon} alt="" className="w-5 h-5 shrink-0" />}
-                    <span className="text-sm truncate" style={{ color: textColor }}>{title}</span>
+                    <span className="text-sm truncate" style={{ color: t.text }}>{title}</span>
                 </div>
 
                 <div className="flex gap-1 shrink-0">
-                    {/* Maximize */}
                     {showMaximize && !isMobile && (
+                        <button
+                            onMouseDown={(e) => { e.stopPropagation(); setPressedButton('maximize'); }}
+                            onMouseUp={() => { setPressedButton(null); handleMaximize(); }}
+                            onMouseLeave={() => setPressedButton(null)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-6 h-5 border flex items-center justify-center cursor-pointer"
+                            style={getButtonStyle('maximize')}
+                            title={isMaximized ? 'Restore' : 'Maximize'}
+                        >
+                            <span className="text-xs leading-none">{isMaximized ? '❐' : '□'}</span>
+                        </button>
+                    )}
                     <button
-                        onMouseDown={(e) => { e.stopPropagation(); setPressedButton('maximize'); }}
-                        onMouseUp={() => { setPressedButton(null); handleMaximize(); }}
+                        onMouseDown={(e) => { e.stopPropagation(); setPressedButton('close'); }}
+                        onMouseUp={() => { setPressedButton(null); onClose?.(); }}
                         onMouseLeave={() => setPressedButton(null)}
                         onClick={(e) => e.stopPropagation()}
                         className="w-6 h-5 border flex items-center justify-center cursor-pointer"
-                        style={getButtonStyle('maximize')}
-                        title={isMaximized ? "Restore" : "Maximize"}
+                        style={getButtonStyle('close')}
                     >
-                        <span className="text-xs leading-none">{isMaximized ? '❐' : '□'}</span>
-                    </button>
-                    )}
-
-                    {/* Close */}
-                    <button
-                    onMouseDown={(e) => { e.stopPropagation(); setPressedButton('close'); }}
-                    onMouseUp={() => { setPressedButton(null); onClose?.(); }}
-                    onMouseLeave={() => setPressedButton(null)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-6 h-5 border flex items-center justify-center cursor-pointer"
-                    style={getButtonStyle('close')}
-                    >
-                    <span className="text-xs leading-none">✕</span>
+                        <span className="text-xs leading-none">✕</span>
                     </button>
                 </div>
             </div>
 
             {/* DIVIDER */}
             <div className="h-0.5" />
-            <div className="h-px" style={{ backgroundColor: borderLight }} />
-            <div className="h-px" style={{ backgroundColor: borderDark }} />
+            <div className="h-px" style={{ backgroundColor: t.borderLight }} />
+            <div className="h-px" style={{ backgroundColor: t.borderDark }} />
             <div className="h-0.5" />
 
             {/* Content */}
@@ -281,36 +210,29 @@ export default function Window({
             </div>
 
             <div className="h-1" />
-            
+
             {/* Status Bar */}
-            <div 
+            <div
                 className="h-7 border flex items-center px-1 gap-2 shrink-0"
-                style={{ 
-                    backgroundColor: innerBg,
-                    borderTopColor: borderDark,
-                    borderLeftColor: borderDark,
-                    borderBottomColor: borderLight,
-                    borderRightColor: borderLight,
-                    color: textColor
-                }}
+                style={{ backgroundColor: t.bgInner, color: t.text, ...border.inset }}
             >
-                <span className="text-sm truncate overflow-hidden whitespace-nowrap flex-1">{statusText || "Ready"}</span>
-                
-                {/* Resize handle */}
+                <span className="text-sm truncate overflow-hidden whitespace-nowrap flex-1">
+                    {statusText || 'Ready'}
+                </span>
+
                 {!isMaximized && !isMobile && (
                     <div
-                        className="cursor-nwse-resize shrink-0 hover:opacity-100 transition-opacity"
+                        className="cursor-nwse-resize shrink-0 opacity-50 hover:opacity-100 transition-opacity"
                         onMouseDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             isResizingRef.current = true;
                         }}
                     >
-                        <svg width="14" height="14" viewBox="0 0 14 14" className="opacity-50">
-                            <line x1="14" y1="0" x2="0" y2="14" stroke={textColor} strokeWidth="1" />
-                            <line x1="14" y1="5" x2="5" y2="14" stroke={textColor} strokeWidth="1" />
-                            <line x1="14" y1="10" x2="10" y2="14" stroke={textColor} strokeWidth="1" />
-                            <line x1="14" y1="14" x2="14" y2="14" stroke={textColor} strokeWidth="1" />
+                        <svg width="14" height="14" viewBox="0 0 14 14">
+                            <line x1="14" y1="0"  x2="0"  y2="14" stroke={t.text} strokeWidth="1" />
+                            <line x1="14" y1="5"  x2="5"  y2="14" stroke={t.text} strokeWidth="1" />
+                            <line x1="14" y1="10" x2="10" y2="14" stroke={t.text} strokeWidth="1" />
                         </svg>
                     </div>
                 )}
