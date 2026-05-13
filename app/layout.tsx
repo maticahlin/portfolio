@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Desktop [Matic Ahlin]",
-  description: "Visual designer and frontend developer based in Slovenia. Merging design and code to create beautiful, functional web experiences.",
+  description: "Visual designer based in Slovenia with a love for the web. Building sites that merge design craft with functional, expressive code.",
   keywords: ["graphic design", "frontend developer", "visual design", "print design", "Slovenia", "portfolio", "visual communications", "blog"],
   authors: [{ name: "Matic Ahlin" }],
   creator: "Matic Ahlin",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://maticahlin.com",
     title: "Matic Ahlin — Designer & Developer",
-    description: "Visual designer and frontend developer based in Slovenia. Merging design and code to create beautiful, functional web experiences.",
+    description: "Visual designer based in Slovenia with a love for the web. Building sites that merge design craft with functional, expressive code.",
     siteName: "Matic Ahlin Portfolio",
     images: [
       {
@@ -39,6 +39,22 @@ export const metadata: Metadata = {
         alt: "Matic Ahlin Portfolio",
       },
     ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Matic Ahlin - Designer & Developer",
+    description: "Visual designer based in Slovenia with a love for the web. Building sites that merge design craft with functional, expressive code.",
+    images: ["/og-image.png"],
+  },
+
+  alternates: {
+    canonical: "https://maticahlin.com",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
