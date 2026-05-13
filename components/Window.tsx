@@ -18,6 +18,7 @@ type WindowProps = {
     initialX?: number;
     initialY?: number;
     showMaximize?: boolean;
+    ghost?: boolean;
 };
 
 export default function Window({ 
@@ -34,6 +35,7 @@ export default function Window({
     initialWidth = 600,
     initialHeight = 400,
     showMaximize = false,
+    ghost = false,
 }: WindowProps) {
     const getRandomPosition = () => {
         if (!desktopRef.current) return { x: 100, y: 100 };
@@ -125,7 +127,14 @@ export default function Window({
 
     if (isMinimized) return null;
 
-    const outerStyle = isMobile ? {
+    const outerStyle = ghost ? {
+        left: `${position.x}px`, top: `${position.y}px`,
+        width: `${size.width}px`, height: `${size.height}px`,
+        zIndex: isActive ? 10 : 1,
+        backgroundColor: 'transparent',
+        border: '1px solid rgba(255,255,255,0.2)',
+        paddingTop: '1px', paddingLeft: '1px', paddingRight: '1px', paddingBottom: '1px',
+    } : isMobile ? {
         width: '100%', height: '100%',
         zIndex: isActive ? 10 : 1,
         backgroundColor: t.bgWindow,
@@ -157,7 +166,13 @@ export default function Window({
             {/* TITLE BAR */}
             <div
                 className={`h-7 px-1 flex items-center justify-between select-none ${!isMaximized && !isMobile ? 'cursor-move' : ''}`}
-                style={{ backgroundColor: isActive ? '#5a5a5a' : t.bgInner, color: t.text, opacity: isActive ? 1 : 0.5 }}
+                style={{ 
+                    backgroundColor: ghost ? 'rgba(0,0,0,0.45)' : isActive ? '#5a5a5a' : t.bgInner, 
+                    color: t.text, 
+                    opacity: ghost ? 1 : isActive ? 1 : 0.5,
+                    padding: '4px',
+                    margin: '1px',
+                }}
                 onMouseDown={(e) => {
                     e.preventDefault();
                     onClick?.();
@@ -205,44 +220,53 @@ export default function Window({
             </div>
 
             {/* DIVIDER */}
-            <div className="h-0.5" />
-            <div className="h-px" style={{ backgroundColor: t.borderLight }} />
-            <div className="h-px" style={{ backgroundColor: t.borderDark }} />
-            <div className="h-0.5" />
+            {!ghost && (
+                <>
+                    <div className="h-0.5" />
+                    <div className="h-px" style={{ backgroundColor: t.borderLight }} />
+                    <div className="h-px" style={{ backgroundColor: t.borderDark }} />
+                    <div className="h-0.5" />
+                </>
+            )}
 
             {/* Content */}
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto p-0.5">
                 {children}
             </div>
 
             <div className="h-1" />
 
             {/* Status Bar */}
-            <div
-                className="h-7 border flex items-center px-1 gap-2 shrink-0"
-                style={{ backgroundColor: t.bgInner, color: t.text, ...border.inset }}
-            >
-                <span className="text-sm truncate overflow-hidden whitespace-nowrap flex-1">
-                    {statusText || 'Ready'}
-                </span>
-
-                {!isMaximized && !isMobile && (
-                    <div
-                        className="cursor-nwse-resize shrink-0 opacity-50 hover:opacity-100 transition-opacity"
-                        onMouseDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            isResizingRef.current = true;
+                <div
+                    className="h-7 border flex items-center px-1 gap-2 shrink-0"
+                    style={{ 
+                        backgroundColor: ghost ? 'rgba(0,0,0,0.45)' : t.bgInner, 
+                        color: t.text, 
+                        ...(ghost ? { borderColor: 'rgba(255,255,255,0.2)' } : border.inset),
+                        margin: '1px',
                         }}
-                    >
-                        <svg width="14" height="14" viewBox="0 0 14 14">
-                            <line x1="14" y1="0"  x2="0"  y2="14" stroke={t.text} strokeWidth="1" />
-                            <line x1="14" y1="5"  x2="5"  y2="14" stroke={t.text} strokeWidth="1" />
-                            <line x1="14" y1="10" x2="10" y2="14" stroke={t.text} strokeWidth="1" />
-                        </svg>
-                    </div>
-                )}
-            </div>
+                >
+                    <span className="text-sm truncate overflow-hidden whitespace-nowrap flex-1">
+                        {statusText || 'Ready'}
+                    </span>
+
+                    {!isMaximized && !isMobile && (
+                        <div
+                            className="cursor-nwse-resize shrink-0 opacity-50 hover:opacity-100 transition-opacity"
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                isResizingRef.current = true;
+                            }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 14 14">
+                                <line x1="14" y1="0"  x2="0"  y2="14" stroke={t.text} strokeWidth="1" />
+                                <line x1="14" y1="5"  x2="5"  y2="14" stroke={t.text} strokeWidth="1" />
+                                <line x1="14" y1="10" x2="10" y2="14" stroke={t.text} strokeWidth="1" />
+                            </svg>
+                        </div>
+                    )}
+                </div>
         </motion.div>
     );
 }

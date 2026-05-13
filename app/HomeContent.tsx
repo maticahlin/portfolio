@@ -34,7 +34,7 @@ export default function HomeContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
-  const anyWindowOpen = showProjects || showMail || showQR || showAbout || previewWindows.some(p => !closedPreviews.has(p._id) && !isMobile);
+  const anyWindowOpen = showProjects || showMail || showQR || showAbout;
   const [mailSubject, setMailSubject] = useState("");
 
   const searchParams = useSearchParams();
@@ -386,6 +386,7 @@ function PreviewWindow({
 
   return (
     <Window
+      ghost
       title={project.title}
       icon="/icons/world-star.png"
       onClose={onClose}
