@@ -10,7 +10,7 @@ import FileBrowser from "@/components/FileBrowser";
 import QRGenerator from "@/components/QRGenerator";
 import { getProjects, type Project } from "@/lib/sanity";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 
@@ -32,8 +32,10 @@ export default function HomeContent() {
   const [theme, setTheme] = useState<'grey' | 'dark'>('dark');
   const [projectViewTitle, setProjectViewTitle] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);  // ADD THIS
-  const [viewingProject, setViewingProject] = useState<Project | null>(null);  // ADD THIS
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);
+  const anyWindowOpen = showProjects || showMail || showQR || showAbout || previewWindows.some(p => !closedPreviews.has(p._id) && !isMobile);
+  const [mailSubject, setMailSubject] = useState("");
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -100,14 +102,9 @@ export default function HomeContent() {
   // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key === '1') {
-        setTheme('grey');
-        console.log('Switched to GREY theme');
-      }
-      if (e.altKey && e.key === '2') {
-        setTheme('dark');
-        console.log('Switched to DARK theme');
-      }
+      if (e.altKey && e.key === 'p') { setShowProjects(true); setActiveWindow("projects"); }
+      if (e.altKey && e.key === 'm') { setShowMail(true); setActiveWindow("mail"); }
+      if (e.altKey && e.key === 'q') { setShowQR(true); setActiveWindow("qr"); }
     };
     
     window.addEventListener('keydown', handleKeyDown);
@@ -155,48 +152,34 @@ export default function HomeContent() {
     >
       <TopBar />
 
-      <div className="w-full h-px bg-white shrink-0" />
-
       <div ref={desktopRef} className="flex-1 relative overflow-hidden">
         <div className="absolute top-6.25 left-6.25 flex flex-col gap-8">
           <DesktopIcon 
             label="Projects" 
             icon="/projects.png" 
-            onClick={() => {
-              setShowProjects(true);
-              setActiveWindow("projects");
-            }} 
+            onClick={() => { setShowProjects(true); setActiveWindow("projects"); }} 
           />
           <DesktopIcon 
             label="Mail" 
             icon="/mail.png" 
-            onClick={() => {
-              setShowMail(true);
-              setActiveWindow("mail");
-            }} 
+            onClick={() => { setShowMail(true); setActiveWindow("mail"); }} 
           />
           <DesktopIcon 
             label="QR Tool" 
             icon="/qr.png" 
-            onClick={() => {
-              setShowQR(true);
-              setActiveWindow("qr");
-            }} 
+            onClick={() => { setShowQR(true); setActiveWindow("qr"); }} 
           />
         </div>
 
         <AnimatePresence>
         {!isMobile && previewWindows.map((project, index) => {
           if (closedPreviews.has(project._id)) return null;
-          
           const validMedia = project.images?.filter(img => img && img.url) || [];
           if (validMedia.length === 0) return null;
-          
           const randomMedia = validMedia[Math.floor(Math.random() * validMedia.length)];
           const isVideo = randomMedia._type === 'file';
           const offsetX = index * 60;
           const offsetY = index * 80;
-          
           return (
             <PreviewWindow
               key={project._id}
@@ -220,12 +203,7 @@ export default function HomeContent() {
           <Window 
             title={projectViewTitle ? `Project Browser - ${projectViewTitle}` : "Project Browser"}
             icon="/projects.png" 
-            onClose={() => {
-              setShowProjects(false);
-              setSelectedProjectId(null);
-              setProjectViewTitle(null);
-              setViewingProject(null);
-            }}
+            onClose={() => { setShowProjects(false); setSelectedProjectId(null); setProjectViewTitle(null); setViewingProject(null); setActiveWindow(null); }}
             isActive={activeWindow === "projects"}
             onClick={() => setActiveWindow("projects")}
             desktopRef={desktopRef}
@@ -238,11 +216,7 @@ export default function HomeContent() {
               onStatusChange={setProjectsStatusText}
               initialProjectId={selectedProjectId}
               onProjectView={setProjectViewTitle}
-              onCloseProject={() => {
-                setViewingProject(null);
-                setProjectViewTitle(null);
-                setSelectedProjectId(null);
-              }}
+              onCloseProject={() => { setViewingProject(null); setProjectViewTitle(null); setSelectedProjectId(null); }}
             />
           </Window>
         )}
@@ -251,9 +225,9 @@ export default function HomeContent() {
         <AnimatePresence>
         {showMail && (
           <Window 
-            title="Mail" 
+            title={mailSubject ? `${mailSubject} - Message to [maticahlin2@gmail.com]` : "Mail - Message to [maticahlin2@gmail.com]"}
             icon="/mail.png" 
-            onClose={() => setShowMail(false)}
+            onClose={() => { setShowMail(false); setActiveWindow(null); }}
             onMinimize={() => setIsMailMinimized(true)}
             isMinimized={isMailMinimized}
             isActive={activeWindow === "mail"}
@@ -261,7 +235,10 @@ export default function HomeContent() {
             statusText={mailStatusText}
             desktopRef={desktopRef}
           >
-            <MailForm onStatusChange={setMailStatusText} />
+            <MailForm 
+              onStatusChange={setMailStatusText}
+              onSubjectChange={setMailSubject} 
+            />
           </Window>
         )}
         </AnimatePresence>
@@ -271,7 +248,7 @@ export default function HomeContent() {
           <Window 
             title="QR Code Generator" 
             icon="/qr.png" 
-            onClose={() => setShowQR(false)}
+            onClose={() => { setShowQR(false); setActiveWindow(null); }}
             onMinimize={() => setIsQRMinimized(true)}
             isMinimized={isQRMinimized}
             isActive={activeWindow === "qr"}
@@ -285,13 +262,39 @@ export default function HomeContent() {
           </Window>
         )}
         </AnimatePresence>
+
         <AnimatePresence>
           {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
         </AnimatePresence>
       </div>
 
+      {/* Overlay — outside desktop div so it covers taskbar too */}
+      <AnimatePresence>
+        {anyWindowOpen && (
+          <motion.div
+            className="fixed inset-0 pointer-events-none"
+            style={{
+              zIndex: 0,
+              backdropFilter: 'blur(3px)',
+              backgroundColor: 'rgba(0,0,0,0.4)'
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          />
+        )}
+      </AnimatePresence>
+
       <TaskBar 
         onOpenAbout={() => setShowAbout(true)}
+        onOpenProjects={() => { setShowProjects(true); setActiveWindow("projects"); }}
+        onOpenMail={() => { setShowMail(true); setActiveWindow("mail"); }}
+        onOpenQR={() => { setShowQR(true); setActiveWindow("qr"); }}
+        showProjects={showProjects}
+        showMail={showMail}
+        showQR={showQR}
+        activeWindow={activeWindow}
       />
     </div>
   );

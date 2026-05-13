@@ -1,48 +1,120 @@
 "use client";
 import React from "react";
+import { t, border } from '@/lib/theme';
 
 export default function TaskBar({ 
-  onOpenAbout 
+  onOpenAbout,
+  onOpenProjects,
+  onOpenMail,
+  onOpenQR,
+  showProjects,
+  showMail,
+  showQR,
+  activeWindow,
 }: { 
   onOpenAbout?: () => void;
+  onOpenProjects?: () => void;
+  onOpenMail?: () => void;
+  onOpenQR?: () => void;
+  showProjects?: boolean;
+  showMail?: boolean;
+  showQR?: boolean;
+  activeWindow?: string | null;
 }) {
   const [isMobile, setIsMobile] = React.useState(false);
+  const [pressed, setPressed] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
+  const getLaunchStyle = (name: string, isOpen?: boolean) => {
+    const isFocused = activeWindow === name;
+    const isPressed = pressed === name;
+
+    if (isPressed) return {
+      backgroundColor: t.bgInner,
+      color: t.text,
+      ...border.button.pressed,
+    };
+    if (isFocused) return {
+      backgroundColor: t.bgWindow,
+      color: t.text,
+      ...border.button.pressed,
+    };
+    if (isOpen) return {
+      backgroundColor: '#3a3a3a',
+      color: t.textMuted,
+      ...border.button.pressed,
+    };
+    return {
+      backgroundColor: 'transparent',
+      color: t.text,
+      border: 'none',
+      boxShadow: 'none',
+    };
+  };
+
   return (
-    <div className="w-full h-9 py-1 flex items-stretch justify-end px-2.5 shrink-0">
-      {/* Right side - System tray + Clock */}
+    <div 
+      className="w-full h-9 flex items-stretch justify-between px-2 shrink-0 relative"
+      style={{
+        backgroundColor: '#3a3a3a',
+        borderTop: `1px solid ${t.borderLight}`,
+        borderBottom: `1px solid ${t.borderDark}`,
+        zIndex: 10,
+      }}
+    >
+      {/* Left side — App launchers */}
+      <div className="flex items-stretch gap-1 py-1">
+        {[
+          { name: 'projects', label: 'Projects', icon: '/projects.png', onClick: onOpenProjects, isOpen: showProjects },
+          { name: 'mail',     label: 'Mail',     icon: '/mail.png',     onClick: onOpenMail,     isOpen: showMail },
+          { name: 'qr',       label: 'QR Tool',  icon: '/qr.png',       onClick: onOpenQR,       isOpen: showQR },
+        ].map(({ name, label, icon, onClick, isOpen }) => (
+          <button
+            key={name}
+            onMouseDown={() => setPressed(name)}
+            onMouseUp={() => { setPressed(null); onClick?.(); }}
+            onMouseLeave={() => setPressed(null)}
+            className="flex items-center gap-1.5 px-3 h-full text-sm border cursor-pointer transition-none"
+            style={getLaunchStyle(name, isOpen)}
+          >
+            <img src={icon} alt="" className="w-4 h-4 shrink-0" />
+            {!isMobile && (
+              <span>
+                <span className="underline">{label[0]}</span>{label.slice(1)}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Divider */}
+      <div className="flex-1" />
+
+      {/* Right side — Social + About + Clock */}
       <div className="flex items-stretch gap-2">
-        {/* System Tray Icons */}
-        <div className="flex items-center gap-3.5 px-2">
-          {/* LinkedIn */}
+
+        {/* Social links + About */}
+        <div className="flex items-center gap-4 px-2">
           <button
             onClick={() => window.open('https://www.linkedin.com/in/matic-ahlin/', '_blank')}
-            className="text-[14px] font-sans text-white cursor-pointer hover:underline"
-            title="LinkedIn"
+            className="text-sm font-sans cursor-pointer hover:underline"
+            style={{ color: t.text }}
           >
             LinkedIn
           </button>
-          
-          {/* Instagram */}
           <button
             onClick={() => window.open('https://www.instagram.com/maticahlin/', '_blank')}
-            className="text-[14px] font-sans text-white cursor-pointer hover:underline"
-            title="Instagram"
+            className="text-sm font-sans cursor-pointer hover:underline"
+            style={{ color: t.text }}
           >
             Instagram
           </button>
-          
-          {/* About/CV */}
           <button
             onClick={onOpenAbout}
             className="hover:opacity-80 transition-opacity cursor-pointer"
@@ -52,14 +124,23 @@ export default function TaskBar({
           </button>
         </div>
 
-        {/* Divider + Clock - Desktop only */}
+        {/* Divider */}
         {!isMobile && (
-          <>
-            <div className="border-l border-grey-dark" />
-            <div className="h-full flex items-center px-2 text-sm font-sans text-white leading-none border border-grey-dark">
-              <Clock />
-            </div>
-          </>
+          <div className="w-px my-1" style={{ backgroundColor: t.borderDark }} />
+        )}
+
+        {/* Clock — recessed inset panel */}
+        {!isMobile && (
+          <div 
+            className="flex items-center px-3 text-sm font-sans my-1 border"
+            style={{ 
+              color: t.text,
+              backgroundColor: t.bgInner,
+              ...border.inset,
+            }}
+          >
+            <Clock />
+          </div>
         )}
       </div>
     </div>

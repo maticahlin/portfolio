@@ -131,6 +131,9 @@ export default function Window({
         backgroundColor: t.bgWindow,
         ...border.window,
         paddingTop: '1px', paddingLeft: '1px', paddingRight: '1px', paddingBottom: '1px',
+        boxShadow: isActive 
+            ? '0 16px 48px rgba(0,0,0,0.9)' 
+            : '0 4px 16px rgba(0,0,0,0.5)',
     } : {
         left: `${position.x}px`, top: `${position.y}px`,
         width: `${size.width}px`, height: `${size.height}px`,
@@ -138,12 +141,15 @@ export default function Window({
         backgroundColor: t.bgWindow,
         ...border.window,
         paddingTop: '1px', paddingLeft: '1px', paddingRight: '1px', paddingBottom: '1px',
+        boxShadow: isActive 
+            ? '0 16px 48px rgba(0,0,0,0.9)' 
+            : '0 4px 16px rgba(0,0,0,0.5)',
     };
 
     return (
         <motion.div
             ref={windowRef}
-            className={`${isMobile ? 'absolute inset-0' : 'absolute'} shadow-lg flex flex-col`}
+            className={`${isMobile ? 'absolute inset-0' : 'absolute'} flex flex-col`}
             {...anim.window}
             style={outerStyle}
             onClick={onClick}
@@ -151,7 +157,7 @@ export default function Window({
             {/* TITLE BAR */}
             <div
                 className={`h-7 px-1 flex items-center justify-between select-none ${!isMaximized && !isMobile ? 'cursor-move' : ''}`}
-                style={{ backgroundColor: t.bgInner, color: t.text }}
+                style={{ backgroundColor: isActive ? '#5a5a5a' : t.bgInner, color: t.text, opacity: isActive ? 1 : 0.5 }}
                 onMouseDown={(e) => {
                     e.preventDefault();
                     onClick?.();
