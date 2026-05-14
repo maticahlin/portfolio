@@ -34,7 +34,7 @@ export default function HomeContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
-  const anyWindowOpen = showProjects || showMail || showQR || showAbout;
+  const anyWindowOpen = (showProjects || showMail || showQR || showAbout) && activeWindow !== null;
   const [mailSubject, setMailSubject] = useState("");
 
   const searchParams = useSearchParams();
@@ -152,7 +152,11 @@ export default function HomeContent() {
     >
       <TopBar />
 
-      <div ref={desktopRef} className="flex-1 relative overflow-hidden">
+      <div 
+        ref={desktopRef} 
+        className="flex-1 relative overflow-hidden"
+        onClick={(e) => { if (e.target === e.currentTarget) setActiveWindow(null); }}
+      >
         <div className="absolute top-6.25 left-6.25 flex flex-col gap-8">
           <DesktopIcon 
             label="Projects" 

@@ -410,8 +410,17 @@ export default function FileBrowser({
         {!isMobile && (
           <div className="w-80 overflow-hidden border" style={{ backgroundColor: t.bgInner, ...border.inset }}>
             {!projectToShow && (
-              <div className="flex items-center justify-center h-full text-sm opacity-60 p-4 text-center">
-                Select a project to preview
+              <div 
+                className="flex flex-col items-center justify-center h-full p-4 text-center gap-3"
+                style={{ color: t.textMuted }}
+              >
+                <img src="/projects.png" alt="" className="w-10 h-10 opacity-30" />
+                <p className="text-xs font-mono leading-relaxed opacity-60">
+                  — no item selected —
+                </p>
+                <p className="text-xs opacity-40">
+                  hover to preview<br />click to select
+                </p>
               </div>
             )}
             {projectToShow && <ImageCarousel images={projectToShow.images} />}

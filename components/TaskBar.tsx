@@ -60,7 +60,7 @@ export default function TaskBar({
 
   return (
     <div 
-      className="w-full h-9 flex items-stretch justify-between px-2 shrink-0 relative"
+      className="w-full h-10 flex items-stretch justify-between px-2 shrink-0 relative"
       style={{
         backgroundColor: '#3a3a3a',
         borderTop: `1px solid ${t.borderLight}`,
@@ -81,7 +81,7 @@ export default function TaskBar({
             onMouseUp={() => { setPressed(null); onClick?.(); }}
             onMouseLeave={() => setPressed(null)}
             className="flex items-center gap-1.5 px-3 h-full text-sm border cursor-pointer transition-none"
-            style={getLaunchStyle(name, isOpen)}
+            style={{ ...getLaunchStyle(name, isOpen), borderRadius: '0px' }}
           >
             <img src={icon} alt="" className="w-4 h-4 shrink-0" />
             {!isMobile && (

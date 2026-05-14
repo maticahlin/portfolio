@@ -48,18 +48,19 @@ export default function Window({
         };
     };
 
-    const [position, setPosition]   = React.useState(getRandomPosition());
-    const [size, setSize]           = React.useState({ width: initialWidth, height: initialHeight });
+    const [position, setPosition]     = React.useState(getRandomPosition());
+    const [size, setSize]             = React.useState({ width: initialWidth, height: initialHeight });
     const [isDragging, setIsDragging] = React.useState(false);
     const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
     const [isMaximized, setIsMaximized] = React.useState(false);
-    const [prevState, setPrevState]  = React.useState({ position: { x: 0, y: 0 }, size: { width: 0, height: 0 } });
+    const [prevState, setPrevState]   = React.useState({ position: { x: 0, y: 0 }, size: { width: 0, height: 0 } });
     const [pressedButton, setPressedButton] = useState<'maximize' | 'close' | null>(null);
-    const [isMobile, setIsMobile]   = useState(false);
+    const [isMobile, setIsMobile]     = useState(false);
+    const [isHovered, setIsHovered]   = useState(false);
 
-    const isDraggingRef  = useRef(false);
-    const isResizingRef  = useRef(false);
-    const windowRef      = useRef<HTMLDivElement>(null);
+    const isDraggingRef = useRef(false);
+    const isResizingRef = useRef(false);
+    const windowRef     = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth < 768);
@@ -84,10 +85,10 @@ export default function Window({
     };
 
     const getButtonStyle = (name: 'maximize' | 'close') => {
-    const pressed = pressedButton === name;
-    return pressed
-        ? { ...border.button.pressed, backgroundColor: t.bgInner, color: t.text }
-        : { ...border.button.raised,  backgroundColor: t.bgInner, color: t.text };
+        const pressed = pressedButton === name;
+        return pressed
+            ? { ...border.button.pressed, backgroundColor: t.bgInner, color: t.text }
+            : { ...border.button.raised,  backgroundColor: t.bgInner, color: t.text };
     };
 
     React.useEffect(() => {
@@ -113,8 +114,8 @@ export default function Window({
 
         const handleMouseUp = () => {
             setIsDragging(false);
-            isDraggingRef.current  = false;
-            isResizingRef.current  = false;
+            isDraggingRef.current = false;
+            isResizingRef.current = false;
         };
 
         document.addEventListener('mousemove', handleMouseMove);
@@ -127,21 +128,99 @@ export default function Window({
 
     if (isMinimized) return null;
 
-    const outerStyle = ghost ? {
-        left: `${position.x}px`, top: `${position.y}px`,
-        width: `${size.width}px`, height: `${size.height}px`,
-        zIndex: isActive ? 10 : 1,
-        backgroundColor: 'transparent',
-        border: '1px solid rgba(255,255,255,0.2)',
-        paddingTop: '1px', paddingLeft: '1px', paddingRight: '1px', paddingBottom: '1px',
-    } : isMobile ? {
+    // ─── Ghost window — completely separate render path ───────────────────────
+    if (ghost) {
+        return (
+            <motion.div
+                ref={windowRef}
+                className="absolute"
+                {...anim.window}
+                style={{
+                    left: `${position.x}px`,
+                    top:  `${position.y}px`,
+                    width:  `${size.width}px`,
+                    height: `${size.height}px`,
+                    zIndex: isActive ? 10 : 1,
+                    border: `1px solid ${isHovered ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.15)'}`,
+                    transition: 'border-color 0.2s ease, transform 0.2s ease',
+                    transform: isHovered ? 'scale(1.01)' : 'scale(1)',
+                    overflow: 'hidden',
+                }}
+                onClick={onClick}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
+                {/* Content fills entire window */}
+                <div className="absolute inset-0 overflow-hidden">
+                    {children}
+                </div>
+
+                {/* Title bar overlaid on top */}
+                <div
+                    className="absolute left-0 right-0 top-0 h-7 px-2 flex items-center justify-between select-none cursor-move"
+                    style={{
+                        zIndex: 2,
+                        backgroundColor: 'rgba(0,0,0,0.65)',
+                        color: t.text,
+                        opacity: isHovered ? 1 : 0,
+                        transition: 'opacity 0.2s ease',
+                    }}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        onClick?.();
+                        if (desktopRef.current) {
+                            const desktop = desktopRef.current.getBoundingClientRect();
+                            setIsDragging(true);
+                            isDraggingRef.current = true;
+                            setDragOffset({
+                                x: e.clientX - desktop.left - position.x,
+                                y: e.clientY - desktop.top  - position.y,
+                            });
+                        }
+                    }}
+                >
+                    <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
+                        {icon && <img src={icon} alt="" className="w-5 h-5 shrink-0" />}
+                        <span className="text-sm truncate" style={{ color: t.text }}>{title}</span>
+                    </div>
+                    <button
+                        onMouseDown={(e) => { e.stopPropagation(); setPressedButton('close'); }}
+                        onMouseUp={() => { setPressedButton(null); onClose?.(); }}
+                        onMouseLeave={() => setPressedButton(null)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-6 h-5 border flex items-center justify-center cursor-pointer"
+                        style={getButtonStyle('close')}
+                    >
+                        <span className="text-xs leading-none">✕</span>
+                    </button>
+                </div>
+
+                {/* Status bar overlaid on bottom */}
+                <div
+                    className="absolute left-0 right-0 bottom-0 h-7 px-2 flex items-center"
+                    style={{
+                        zIndex: 2,
+                        backgroundColor: 'rgba(0,0,0,0.65)',
+                        color: t.text,
+                        opacity: isHovered ? 1 : 0,
+                        transition: 'opacity 0.2s ease',
+                    }}
+                >
+                    <span className="text-sm truncate">{statusText || 'Ready'}</span>
+                </div>
+            </motion.div>
+        );
+    }
+
+    // ─── Regular window ───────────────────────────────────────────────────────
+    const outerStyle = isMobile ? {
         width: '100%', height: '100%',
         zIndex: isActive ? 10 : 1,
         backgroundColor: t.bgWindow,
         ...border.window,
         paddingTop: '1px', paddingLeft: '1px', paddingRight: '1px', paddingBottom: '1px',
-        boxShadow: isActive 
-            ? '0 16px 48px rgba(0,0,0,0.9)' 
+        boxShadow: isActive
+            ? '0 16px 48px rgba(0,0,0,0.9)'
             : '0 4px 16px rgba(0,0,0,0.5)',
     } : {
         left: `${position.x}px`, top: `${position.y}px`,
@@ -150,8 +229,8 @@ export default function Window({
         backgroundColor: t.bgWindow,
         ...border.window,
         paddingTop: '1px', paddingLeft: '1px', paddingRight: '1px', paddingBottom: '1px',
-        boxShadow: isActive 
-            ? '0 16px 48px rgba(0,0,0,0.9)' 
+        boxShadow: isActive
+            ? '0 16px 48px rgba(0,0,0,0.9)'
             : '0 4px 16px rgba(0,0,0,0.5)',
     };
 
@@ -166,12 +245,10 @@ export default function Window({
             {/* TITLE BAR */}
             <div
                 className={`h-7 px-1 flex items-center justify-between select-none ${!isMaximized && !isMobile ? 'cursor-move' : ''}`}
-                style={{ 
-                    backgroundColor: ghost ? 'rgba(0,0,0,0.45)' : isActive ? '#5a5a5a' : t.bgInner, 
-                    color: t.text, 
-                    opacity: ghost ? 1 : isActive ? 1 : 0.5,
-                    padding: '4px',
-                    margin: '1px',
+                style={{
+                    backgroundColor: isActive ? '#5a5a5a' : t.bgInner,
+                    color: t.text,
+                    opacity: isActive ? 1 : 0.5,
                 }}
                 onMouseDown={(e) => {
                     e.preventDefault();
@@ -220,53 +297,44 @@ export default function Window({
             </div>
 
             {/* DIVIDER */}
-            {!ghost && (
-                <>
-                    <div className="h-0.5" />
-                    <div className="h-px" style={{ backgroundColor: t.borderLight }} />
-                    <div className="h-px" style={{ backgroundColor: t.borderDark }} />
-                    <div className="h-0.5" />
-                </>
-            )}
+            <div className="h-0.5" />
+            <div className="h-px" style={{ backgroundColor: t.borderLight }} />
+            <div className="h-px" style={{ backgroundColor: t.borderDark }} />
+            <div className="h-0.5" />
 
             {/* Content */}
-            <div className="flex-1 overflow-auto p-0.5">
+            <div className="flex-1 overflow-auto" style={{ padding: '2px' }}>
                 {children}
             </div>
 
             <div className="h-1" />
 
             {/* Status Bar */}
-                <div
-                    className="h-7 border flex items-center px-1 gap-2 shrink-0"
-                    style={{ 
-                        backgroundColor: ghost ? 'rgba(0,0,0,0.45)' : t.bgInner, 
-                        color: t.text, 
-                        ...(ghost ? { borderColor: 'rgba(255,255,255,0.2)' } : border.inset),
-                        margin: '1px',
-                        }}
-                >
-                    <span className="text-sm truncate overflow-hidden whitespace-nowrap flex-1">
-                        {statusText || 'Ready'}
-                    </span>
+            <div
+                className="h-7 border flex items-center px-1 gap-2 shrink-0"
+                style={{ backgroundColor: t.bgInner, color: t.text, ...border.inset }}
+            >
+                <span className="text-sm truncate overflow-hidden whitespace-nowrap flex-1">
+                    {statusText || 'Ready'}
+                </span>
 
-                    {!isMaximized && !isMobile && (
-                        <div
-                            className="cursor-nwse-resize shrink-0 opacity-50 hover:opacity-100 transition-opacity"
-                            onMouseDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                isResizingRef.current = true;
-                            }}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 14 14">
-                                <line x1="14" y1="0"  x2="0"  y2="14" stroke={t.text} strokeWidth="1" />
-                                <line x1="14" y1="5"  x2="5"  y2="14" stroke={t.text} strokeWidth="1" />
-                                <line x1="14" y1="10" x2="10" y2="14" stroke={t.text} strokeWidth="1" />
-                            </svg>
-                        </div>
-                    )}
-                </div>
+                {!isMaximized && !isMobile && (
+                    <div
+                        className="cursor-nwse-resize shrink-0 opacity-50 hover:opacity-100 transition-opacity"
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            isResizingRef.current = true;
+                        }}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 14 14">
+                            <line x1="14" y1="0"  x2="0"  y2="14" stroke={t.text} strokeWidth="1" />
+                            <line x1="14" y1="5"  x2="5"  y2="14" stroke={t.text} strokeWidth="1" />
+                            <line x1="14" y1="10" x2="10" y2="14" stroke={t.text} strokeWidth="1" />
+                        </svg>
+                    </div>
+                )}
+            </div>
         </motion.div>
     );
 }
